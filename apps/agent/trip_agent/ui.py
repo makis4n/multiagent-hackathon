@@ -1,7 +1,7 @@
 """Streamlit page: the brief on the left, itinerary and bookings on the right. Only Lane A edits this file.
 
 Three steps, kept in session state: brief -> questions -> plan. Bookings wait for a click on each option.
-While a stage runs the page shows a game-style loading bar (an iframe, so it animates while Python is busy).
+While a stage runs a modal shows a game-style loading bar (an iframe, so it animates while Python is busy).
 """
 
 from __future__ import annotations
@@ -11,12 +11,13 @@ import html
 import json
 import re
 import string
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import streamlit as st
 import streamlit.components.v1 as components
 from dotenv import load_dotenv
-from streamlit.delta_generator import DeltaGenerator
 
 from trip_agent.log import CallLog
 from trip_agent.loop import (
@@ -30,7 +31,7 @@ from trip_agent.loop import (
     stage_verify,
 )
 from trip_agent.registry import build_tools
-from trip_core.models import BudgetBand, Signal, TripBrief, TripState
+from trip_core.models import BookingOption, BudgetBand, Signal, ToolError, TripBrief, TripState
 
 # Material Symbols, the vector icon set Streamlit ships; rendered through the :material/name: shortcode.
 STYLES = {
@@ -110,15 +111,19 @@ ORIGINS = [
 ]
 
 PRODUCT = "Tripia"
-# The mark: a paper plane gliding down into an inbox tray. Inline SVG, currentColor, so it takes the text colour
-# wherever it sits and the accent where the brand does.
+# The mark: a map pin whose head holds a paper plane. One solid shape in currentColor so it takes the accent
+# wherever the brand sits; the plane is knocked out in the surface colour (override --logo-bg on dark surfaces).
 LOGO_SVG = """<svg class="logo" viewBox="0 0 48 48" width="{size}" height="{size}" fill="none" aria-hidden="true">
-<path d="M8 27h9l3 5h8l3-5h9v11a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3V27z" fill="currentColor" opacity="0.18"/>
-<path d="M8 27h9l3 5h8l3-5h9m-32 0v11a3 3 0 0 0 3 3h26a3 3 0 0 0 3-3V27M8 27l4-8m28 8-4-8"
- stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M41 5 21 14l7 3.5L31 25l10-20z" fill="currentColor"/>
-<path d="M28 17.5 41 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+<path d="M24 45c-.6 0-1.1-.3-1.5-.8C15.3 34.3 8 26.6 8 18a16 16 0 0 1 32 0c0 8.6-7.3 16.3-14.5 26.2-.4.5-.9.8-1.5.8Z"
+ fill="currentColor"/>
+<g transform="translate(24 18) scale(1.12) translate(-25.05 -18.1)">
+<path d="m32.5 10.5-16 6.3c-.9.4-.9 1.1 0 1.5l4.6 1.6 1.7 5.2c.3.8 1 .9 1.4.1l2-3.4 4.4 3.3c.6.5 1.4.2 1.6-.6
+ l2.1-12.7c.2-.9-.6-1.5-1.8-1.3Z" fill="var(--logo-bg, #fff)"/>
+</g>
 </svg>"""
+
+# Landing hero backdrop: a rowing boat on Lago di Braies (Unsplash, hotlinked). The panel colour shows if offline.
+HERO_PHOTO = "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1800&q=70"
 
 FONT_LINK = (
     "https://fonts.googleapis.com/css2?"
@@ -139,13 +144,26 @@ STYLE_BLOCK = f"""
 [data-testid="stAppViewContainer"] p, [data-testid="stAppViewContainer"] li {{ line-height: 1.55; }}
 h1, h2, h3 {{ font-family: "Bricolage Grotesque", sans-serif; letter-spacing: -0.01em; }}
 
-.brand {{ display: flex; align-items: center; gap: 0.55rem; color: var(--accent); margin: 0 0 1rem 0; }}
+.brand {{ display: flex; align-items: center; gap: 0.5rem; color: var(--accent); margin: 0 0 1rem 0; line-height: 1; }}
+.brand .logo {{ flex: none; }}
 .brand-name {{
-  font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em;
-  color: var(--ink);
+  font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 1.4rem; letter-spacing: -0.035em;
+  font-variation-settings: "opsz" 96; color: var(--ink);
 }}
+.brand.hero-brand .brand-name {{ font-size: 1.75rem; }}
 .brand.hero-brand {{ margin-bottom: 0.4rem; }}
 .hero {{ margin: 0.2rem 0 1.2rem 0; }}
+.hero.hero-photo {{
+  position: relative; min-height: 22rem; border-radius: 1rem; overflow: hidden; margin: 0 0 1.2rem 0;
+  display: flex; flex-direction: column; justify-content: flex-end; padding: 1.6rem 1.8rem; color: #fff;
+  background:
+    linear-gradient(to top, rgba(10, 14, 20, 0.85) 0%, rgba(10, 14, 20, 0.35) 55%, rgba(10, 14, 20, 0) 100%),
+    var(--panel) url("{HERO_PHOTO}") center / cover no-repeat;
+}}
+.hero.hero-photo .hero-title {{ color: #fff; font-size: 3rem; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35); }}
+.hero.hero-photo .hero-tag {{ color: rgba(255, 255, 255, 0.88); }}
+.hero.hero-photo .brand {{ margin: 0 0 auto 0; color: #fff; --logo-bg: #14171C; }}
+.hero.hero-photo .brand-name {{ color: #fff; }}
 .hero-kicker {{
   font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent);
   margin: 0 0 0.35rem 0;
@@ -233,8 +251,8 @@ table.manifest td.stop-time {{
 .stop-place {{ font-weight: 700; font-size: 1rem; margin-right: 0.15rem; }}
 /* Pills shaped like the sidebar's st.pills: full radius, hairline border, small text, a Material icon first. */
 .pill {{
-  display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; font-weight: 500; line-height: 1;
-  padding: 0.28rem 0.7rem 0.28rem 0.55rem; border-radius: 999px; border: 1px solid rgba(49, 51, 63, 0.2);
+  display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.875rem; font-weight: 500; line-height: 1;
+  padding: 0.32rem 0.75rem 0.32rem 0.6rem; border-radius: 999px; border: 1px solid rgba(49, 51, 63, 0.2);
   color: var(--ink); background: transparent; white-space: nowrap;
 }}
 .pill .ms {{
@@ -282,10 +300,22 @@ div[class*="st-key-ticket-"] {{
   font-variant-numeric: tabular-nums;
 }}
 .ticket-sub {{ display: block; font-size: 0.78rem; color: var(--muted); }}
+
+.legs {{ display: flex; flex-direction: column; gap: 0.7rem; margin: 0.9rem 0 0.4rem 0; }}
+.leg {{ border: 1px solid var(--line); border-radius: 0.9rem; padding: 0.7rem 1rem; }}
+.leg-head {{ margin-bottom: 0.35rem; }}
+.leg-meta {{ font-size: 0.78rem; color: var(--muted); font-weight: 500; }}
+.seg {{
+  display: grid; grid-template-columns: 3.4rem 1fr 3.4rem; gap: 0.2rem 0.6rem; align-items: baseline;
+  padding: 0.35rem 0; border-top: 1px dashed var(--line);
+}}
+.seg-time {{ font-family: "JetBrains Mono", monospace; font-size: 0.85rem; font-variant-numeric: tabular-nums; }}
+.seg-route {{ font-weight: 700; }}
+.seg-meta {{ grid-column: 1 / -1; font-size: 0.78rem; color: var(--muted); }}
 </style>"""
 
 # Loading bar: a slim accent bar easing toward full over the expected stage time, a rotating tip under it.
-# It is an iframe so it keeps animating while Python is blocked in a stage.
+# It is an iframe inside a modal so it keeps animating while Python is blocked in a stage.
 RESEARCH_TIPS = [
     "Reading Reddit so you don't have to",
     "Skimming a hundred vlogs at 2x speed",
@@ -314,8 +344,7 @@ LOADER_HTML = """
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap">
 <style>
   body { margin: 0; background: transparent; font-family: "Manrope", sans-serif; color: #14171C; }
-  .wrap { padding: 6px 2px 0 2px; }
-  .label { font-size: 15px; font-weight: 700; margin: 0 0 10px 0; letter-spacing: -0.01em; }
+  .wrap { padding: 4px 2px 0 2px; }
   .track { height: 8px; border-radius: 999px; background: #E9EDF2; overflow: hidden; }
   .fill {
     height: 100%; width: 3%; border-radius: 999px;
@@ -329,7 +358,6 @@ LOADER_HTML = """
   @media (prefers-reduced-motion: reduce) { .fill, .tip.swap { animation-duration: 0.01s; } }
 </style>
 <div class="wrap">
-  <p class="label">__LABEL__</p>
   <div class="track"><div class="fill"></div></div>
   <p class="tip" id="tip"></p>
 </div>
@@ -355,36 +383,44 @@ def main() -> None:
     if "tools" not in st.session_state:
         st.session_state["tools"] = build_tools()
     tools: Tools = st.session_state["tools"]
-    slot = st.empty()  # the loading bar, at the top of the main column while a stage runs
     with st.sidebar:
         brand(size=26)
-        brief_form(tools, slot)
+        brief_form(tools)
         state = current_state()
-        if state is not None and state.report is None:
-            questions_form(state, tools, slot)
         if state is not None:
             signals_list(state)
     state = current_state()
     if state is None or state.itinerary is None:
-        hero()
+        hero(photo=True)
         step_indicator(state)
         st.info("Fill in the brief on the left, then press Plan trip.")
     elif state.report is None:
         hero()
         step_indicator(state)
+        questions_form(state, tools)
         draft_view(state)
     else:
         plan_view(state, tools)
 
 
-def loader(label: str, tips: list[str], seconds: int) -> None:
-    """Rendered inside the main-column slot; the sidebar form stays put underneath the user's hand."""
-    body = (
-        LOADER_HTML.replace("__LABEL__", esc(label))
-        .replace("__TIPS__", json.dumps(tips))
-        .replace("__SECONDS__", str(seconds))
-    )
-    components.html(body, height=96)
+def run_in_modal(label: str, tips: list[str], seconds: int, work: Callable[[], TripState]) -> None:
+    """Opens a modal the user cannot dismiss, keeps the bar moving while `work` blocks, then reruns with the result.
+    The rerun closes the dialog."""
+
+    @st.dialog(label, dismissible=False)
+    def modal() -> None:
+        body = LOADER_HTML.replace("__TIPS__", json.dumps(tips)).replace("__SECONDS__", str(seconds))
+        components.html(body, height=64)
+        try:
+            st.session_state["state"] = work()
+        except ToolError as error:
+            st.error(f"A tool failed, so this step stopped: {error}")
+            if st.button("Close", key=f"close-{label}"):
+                st.rerun()
+            return
+        st.rerun()
+
+    modal()
 
 
 def brand(size: int = 26, extra_class: str = "") -> None:
@@ -394,13 +430,19 @@ def brand(size: int = 26, extra_class: str = "") -> None:
     )
 
 
-def hero() -> None:
-    brand(size=34, extra_class="hero-brand")
+def hero(photo: bool = False) -> None:
+    if photo:
+        lead = (
+            '<div class="hero hero-photo"><div class="brand">'
+            f'{LOGO_SVG.format(size=34)}<span class="brand-name">{PRODUCT}</span></div>'
+        )
+    else:
+        brand(size=34, extra_class="hero-brand")
+        lead = '<div class="hero">'
     st.markdown(
-        '<div class="hero">'
-        '<h1 class="hero-title">Where next?</h1>'
-        '<p class="hero-tag">A plan built from what people posted this month, checked against real opening '
-        "hours and travel times, booked only when you say so.</p>"
+        lead + '<h1 class="hero-title">Plan your next adventure</h1>'
+        '<p class="hero-tag">We read the internet so you don\'t have to. Fresh tips from people who were just '
+        "there, stitched into a day-by-day plan that actually fits, and nothing gets booked until you say go.</p>"
         "</div>",
         unsafe_allow_html=True,
     )
@@ -519,7 +561,7 @@ def log_for(state: TripState) -> CallLog:
     return CallLog(Path("logs/calls.jsonl"), state.brief.id)
 
 
-def brief_form(tools: Tools, slot: DeltaGenerator) -> None:
+def brief_form(tools: Tools) -> None:
     st.subheader("Where to?")
     with st.form("brief"):
         destination_pick = st.selectbox(
@@ -574,16 +616,18 @@ def brief_form(tools: Tools, slot: DeltaGenerator) -> None:
             answers={BUDGET_QUESTION: f"about {int(budget)} EUR per person per day, flights aside"},
         )
         state = TripState(brief=brief)
-        with slot.container():
-            loader("Reading the internet about " + brief.destination, RESEARCH_TIPS, seconds=60)
-        state = stage_draft(stage_research(state, tools, log_for(state)), tools, log_for(state))
-        slot.empty()
-        st.session_state["state"] = state
-        st.rerun()
+        run_in_modal(
+            "Reading the internet about " + brief.destination,
+            RESEARCH_TIPS,
+            seconds=60,
+            work=lambda: stage_draft(stage_research(state, tools, log_for(state)), tools, log_for(state)),
+        )
 
 
-def questions_form(state: TripState, tools: Tools, slot: DeltaGenerator) -> None:
+def questions_form(state: TripState, tools: Tools) -> None:
+    """Above the draft in the main column: answer, then the plan is refined, checked and priced."""
     st.subheader("A few questions")
+    st.caption("Answer what you like and skip the rest. The draft below is refined and checked when you continue.")
     with st.form("questions"):
         answers = {
             question: st.text_input(
@@ -595,15 +639,16 @@ def questions_form(state: TripState, tools: Tools, slot: DeltaGenerator) -> None
             )
             for question in state.questions
         }
-        go = st.form_submit_button("Check and finish the plan", type="primary", width="stretch")
+        go = st.form_submit_button("Check and finish the plan", type="primary")
     if go:
-        with slot.container():
-            loader("Checking every stop", VERIFY_TIPS, seconds=50)
-        state = stage_verify(stage_refine(state, tools, log_for(state), answers), tools, log_for(state))
-        state = stage_calendar(stage_search(state, tools, log_for(state)), tools, log_for(state))
-        slot.empty()
-        st.session_state["state"] = state
-        st.rerun()
+        run_in_modal("Checking every stop", VERIFY_TIPS, seconds=50, work=lambda: finish(state, tools, answers))
+
+
+def finish(state: TripState, tools: Tools, answers: dict[str, str]) -> TripState:
+    """Refine with the answers, verify, search bookings, export the calendar."""
+    log = log_for(state)
+    state = stage_verify(stage_refine(state, tools, log, answers), tools, log)
+    return stage_calendar(stage_search(state, tools, log), tools, log)
 
 
 def source_line(signal: Signal) -> str:
@@ -674,7 +719,7 @@ def pill(label: str, icon: str, status: str | None = None, title: str | None = N
 def draft_view(state: TripState) -> None:
     assert state.itinerary is not None
     st.subheader(f"{state.brief.destination}, first draft")
-    st.caption("Nothing is checked yet. Answer the questions on the left to verify and finish it.")
+    st.caption("Nothing is checked yet. Answer the questions above to verify and finish it.")
     trip_strip(state)
     itinerary_view(state)
 
@@ -715,14 +760,111 @@ def plan_view(state: TripState, tools: Tools) -> None:
                 unsafe_allow_html=True,
             )
             if action_col.button("Book", key=option.provider_ref, type="primary", width="stretch"):
-                placed = order(state, tools, log_for(state), option, dt.datetime.now(dt.UTC))
-                if placed.idempotency_key not in {existing.idempotency_key for existing in state.orders}:
-                    state.orders.append(placed)
-                st.session_state["state"] = state
+                confirm_booking(state, tools, option)
     for placed in state.orders:
         st.success(f"{placed.option.kind.value}: {placed.provider_order_id} ({placed.status.value})")
     if state.calendar_url:
         st.link_button("Open calendar", state.calendar_url)
+
+
+@st.dialog("Confirm this booking", width="large")
+def confirm_booking(state: TripState, tools: Tools, option: BookingOption) -> None:
+    """The confirmation gate. Nothing is ordered until Confirm is pressed; that click is confirmed_by_user_at."""
+    st.markdown(
+        f'<span class="ticket-kind">{esc(option.kind.value)} · {esc(option.provider)}</span>'
+        f'<span class="ticket-price">{option.price_minor / 100:,.0f} {esc(option.currency)}</span>'
+        f'<span class="ticket-sub">{esc(option.title)}</span>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(booking_details_html(option), unsafe_allow_html=True)
+    st.caption("Test mode: the order is placed with a sandbox key and no money moves.")
+    yes, no = st.columns(2)
+    if yes.button("Confirm and book", type="primary", width="stretch", key=f"confirm-{option.provider_ref}"):
+        placed = order(state, tools, log_for(state), option, dt.datetime.now(dt.UTC))
+        if placed.idempotency_key not in {existing.idempotency_key for existing in state.orders}:
+            state.orders.append(placed)
+        st.session_state["state"] = state
+        st.rerun()
+    if no.button("Cancel", width="stretch", key=f"cancel-{option.provider_ref}"):
+        st.rerun()
+
+
+def booking_details_html(option: BookingOption) -> str:
+    """Flight legs when the provider recorded them, otherwise the dates the option carries."""
+    details = option.details
+    slices = details.get("slices") or []
+    if slices:
+        return '<div class="legs">' + "".join(leg_html(index, item) for index, item in enumerate(slices)) + "</div>"
+    facts = [(key.replace("_", " "), value) for key, value in details.items() if isinstance(value, str) and value]
+    if not facts:
+        return ""
+    cells = "".join(
+        f'<div class="trip-cell"><span class="trip-cell-label">{esc(label)}</span>'
+        f'<span class="trip-cell-value">{esc(value)}</span></div>'
+        for label, value in facts
+    )
+    return f'<div class="trip-strip">{cells}</div>'
+
+
+def leg_html(index: int, item: dict[str, Any]) -> str:
+    segments: list[dict[str, Any]] = [segment for segment in item.get("segments") or [] if isinstance(segment, dict)]
+    heading = "Outbound" if index == 0 else "Return" if index == 1 else f"Leg {index + 1}"
+    day = when(str(segments[0].get("departing_at", "")), "%a %d %b") if segments else ""
+    fare = f" · {esc(item['fare_brand'])}" if item.get("fare_brand") else ""
+    rows = "".join(segment_html(segment) for segment in segments)
+    layovers = len(segments) - 1
+    stops = "direct" if layovers < 1 else f"{layovers} stop" + ("s" if layovers != 1 else "")
+    route = f"{esc(item.get('origin', ''))} to {esc(item.get('destination', ''))}"
+    meta = f"{esc(day)} · {esc(hours(str(item.get('duration', ''))))} · {esc(stops)}{fare}"
+    return (
+        '<div class="leg">'
+        f'<div class="leg-head"><b>{esc(heading)}</b> {route} <span class="leg-meta">{meta}</span></div>'
+        f"{rows}</div>"
+    )
+
+
+def segment_html(segment: dict[str, Any]) -> str:
+    bags = []
+    if segment.get("carry_on_bags"):
+        bags.append(f"{segment['carry_on_bags']} carry-on")
+    if segment.get("checked_bags"):
+        bags.append(f"{segment['checked_bags']} checked")
+    meta = " · ".join(
+        part
+        for part in (
+            str(segment.get("carrier", "")),
+            str(segment.get("flight_number", "")),
+            str(segment.get("cabin", "")).replace("_", " "),
+            ", ".join(bags),
+        )
+        if part
+    )
+    return (
+        '<div class="seg">'
+        f'<span class="seg-time">{esc(when(str(segment.get("departing_at", "")), "%H:%M"))}</span>'
+        f'<span class="seg-route">{esc(segment.get("origin", ""))} → {esc(segment.get("destination", ""))}'
+        f' <span class="leg-meta">{esc(hours(str(segment.get("duration", ""))))}</span></span>'
+        f'<span class="seg-time">{esc(when(str(segment.get("arriving_at", "")), "%H:%M"))}</span>'
+        f'<span class="seg-meta">{esc(meta)}</span>'
+        "</div>"
+    )
+
+
+def when(iso: str, pattern: str) -> str:
+    try:
+        return dt.datetime.fromisoformat(iso).strftime(pattern)
+    except ValueError:
+        return iso
+
+
+def hours(duration: str) -> str:
+    """ISO 8601 durations from Duffel, "PT11H30M", read as "11h 30m"."""
+    match = re.fullmatch(r"P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?", duration)
+    if not match:
+        return duration
+    days, hrs, mins = (int(part) if part else 0 for part in match.groups())
+    parts = [f"{days}d" if days else "", f"{hrs}h" if hrs else "", f"{mins}m" if mins else ""]
+    return " ".join(part for part in parts if part)
 
 
 if __name__ == "__main__":

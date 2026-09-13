@@ -55,6 +55,20 @@ def test_search_keeps_the_offer_passenger_ids_for_the_order() -> None:
 
 
 @respx.mock
+def test_search_keeps_the_legs_for_the_confirmation() -> None:
+    option, _ = searched(provider())
+    offer = next(offer for offer in SEARCH["data"]["offers"] if offer["id"] == option.provider_ref)
+    slices = option.details["slices"]
+    assert len(slices) == len(offer["slices"]) >= 1
+    first = slices[0]["segments"][0]
+    segment = offer["slices"][0]["segments"][0]
+    assert first["origin"] == segment["origin"]["iata_code"]
+    assert first["departing_at"] == segment["departing_at"]
+    assert first["flight_number"].endswith(segment["marketing_carrier_flight_number"])
+    assert first["cabin"] and first["checked_bags"] >= 0
+
+
+@respx.mock
 def test_order_refuses_unconfirmed() -> None:
     booking = provider()
     option, key = searched(booking)

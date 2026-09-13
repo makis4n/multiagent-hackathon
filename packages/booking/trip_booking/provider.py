@@ -40,6 +40,36 @@ def decimal_amount(minor: int) -> str:
     return f"{Decimal(minor) / 100:.2f}"
 
 
+def _slice_summary(item: dict[str, Any]) -> dict[str, Any]:
+    """The part of a Duffel slice a traveller reads before confirming: the legs, their times, cabin and bags."""
+    segments = []
+    for segment in item.get("segments", []):
+        passenger = (segment.get("passengers") or [{}])[0]
+        bags = {bag.get("type"): bag.get("quantity", 0) for bag in passenger.get("baggages") or []}
+        segments.append(
+            {
+                "origin": segment.get("origin", {}).get("iata_code", ""),
+                "destination": segment.get("destination", {}).get("iata_code", ""),
+                "departing_at": segment.get("departing_at", ""),
+                "arriving_at": segment.get("arriving_at", ""),
+                "duration": segment.get("duration", ""),
+                "carrier": segment.get("marketing_carrier", {}).get("name", ""),
+                "flight_number": f"{segment.get('marketing_carrier', {}).get('iata_code', '')}"
+                f"{segment.get('marketing_carrier_flight_number', '')}",
+                "cabin": passenger.get("cabin_class_marketing_name") or passenger.get("cabin_class") or "",
+                "checked_bags": bags.get("checked", 0),
+                "carry_on_bags": bags.get("carry_on", 0),
+            }
+        )
+    return {
+        "origin": item.get("origin", {}).get("iata_code", ""),
+        "destination": item.get("destination", {}).get("iata_code", ""),
+        "duration": item.get("duration", ""),
+        "fare_brand": item.get("fare_brand_name") or "",
+        "segments": segments,
+    }
+
+
 def _order_key(offer: dict[str, Any]) -> int:
     """ZZ (Duffel's own sandbox airline) sorts first regardless of price."""
     return 0 if offer.get("owner", {}).get("iata_code") == "ZZ" else 1
@@ -119,6 +149,8 @@ class DuffelBookingProvider:
                 "return": brief.end_date.isoformat(),
                 "passenger_ids": passenger_ids,
                 "brief_id": brief.id,
+                "airline": owner_name,
+                "slices": [_slice_summary(item) for item in offer.get("slices", [])],
             },
         )
 
