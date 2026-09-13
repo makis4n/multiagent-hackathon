@@ -22,6 +22,7 @@ from urllib.parse import urlparse
 import httpx
 
 from trip_core.models import Signal, SignalSource, ToolError, TripBrief
+from trip_research.extract_llm import refine_places
 from trip_research.http import check_status
 from trip_research.places import extract_places
 from trip_research.rank import best_per_url, excerpt, score, to_naive_utc, utc_now
@@ -98,7 +99,7 @@ class ExaSource:
                 signals.extend(to_signals(self._search_once(key, term, now), brief.destination, now))
             except (ToolError, httpx.HTTPError) as error:
                 self.errors.append(f"search: {type(error).__name__}")
-        return best_per_url(signals)
+        return best_per_url(refine_places(signals, brief.destination))
 
     @staticmethod
     def _key() -> str:

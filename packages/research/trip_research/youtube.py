@@ -17,6 +17,7 @@ from typing import Any
 import httpx
 
 from trip_core.models import Signal, SignalSource, ToolError, TripBrief
+from trip_research.extract_llm import refine_places
 from trip_research.http import check_status
 from trip_research.places import extract_places
 from trip_research.rank import best_per_url, excerpt, score, to_naive_utc, utc_now
@@ -106,7 +107,8 @@ class YouTubeSource:
                 statistics = self._statistics(key, video_ids)
             except (ToolError, httpx.HTTPError) as error:
                 self.errors.append(f"statistics: {type(error).__name__}")
-        return best_per_url(to_signals(items, statistics, brief.destination, now))
+        signals = refine_places(to_signals(items, statistics, brief.destination, now), brief.destination)
+        return best_per_url(signals)
 
     @staticmethod
     def _key() -> str:
