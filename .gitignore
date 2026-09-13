@@ -8,3 +8,4 @@ logs/
 .streamlit/secrets.toml
 .DS_Store
 .claude/launch.json
+.claude/specs
