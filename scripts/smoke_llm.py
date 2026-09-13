@@ -1,4 +1,5 @@
-"""One real Gemini call through trip_core.llm. Usage: make smoke-llm (needs GEMINI_API_KEY in .env)."""
+"""One real model call per role through trip_core.llm. Usage: make smoke-llm (needs ANTHROPIC_API_KEY in .env,
+or GEMINI_API_KEY with LLM_PROVIDER=gemini)."""
 
 from __future__ import annotations
 

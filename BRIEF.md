@@ -3,7 +3,7 @@
 Submitted with the repo and the two-minute demo. Everything in here is reproducible from `main` at the SHA named
 below: `make check` for the tests, `make fixture` for the seed trip, `make evals` for the table.
 
-**SHA:** current `main` (refresh this line at the 15:00 freeze) · **Real tools at submission:** planner (Gemini),
+**SHA:** current `main` (refresh this line at the 15:00 freeze) · **Real tools at submission:** planner (Claude),
 places and verifier (Google Places and Routes), research (YouTube and Exa scoped to reddit.com), booking (Duffel
 test mode, flights). Calendar is the fake unless C4 lands.
 
@@ -13,7 +13,7 @@ A traveller gives a destination, dates, party size, a budget band and a few styl
 questions. They get a day-by-day itinerary in which every stop cites the recent post it came from, has been
 checked against Google for existence, opening hours at the planned time and travel time from the previous stop,
 and a flight booked in Duffel's sandbox only after they click. In between, the agent researches what people
-posted recently, drafts with Gemini, turns the answers into patches rather than a rewrite, verifies every stop,
+posted recently, drafts with Claude, turns the answers into patches rather than a rewrite, verifies every stop,
 swaps or drops what fails and says why, and never places an order without an explicit confirmation.
 
 Loop: brief → research → draft → questions → patches → resolve → verify → up to two replacement passes → prune
@@ -28,7 +28,7 @@ until stable → book behind a confirmation → calendar. The loop is code; the 
 | Exa | web search scoped to reddit.com → signals (Reddit's own API is written but unwired: their policy needs approval) | live, read only | B |
 | Google Places API (New) | resolve every stop, opening hours, coordinates | live, read only | C (built by A) |
 | Google Routes API | travel time between consecutive stops | live, read only | C (built by A) |
-| Gemini (google-genai) | drafting, questions, signal ranking | live, Flash Lite | A, C |
+| Claude (anthropic SDK) | drafting, questions, replacements, signal extraction | live, Sonnet 5 main and Haiku 4.5 fast; Gemini Flash Lite kept behind `LLM_PROVIDER=gemini` | A, C |
 | Duffel | flight search and orders | **test mode only**; the client refuses a live key | D |
 | Google Calendar | the finished itinerary as events | fake unless C4 lands | C |
 
@@ -49,8 +49,8 @@ Each row names a test that plants the failure. A row without a test is a claim, 
 | places | no opening hours on record (areas, streets) | `is_open` returns None | check passes as "hours unknown" instead of failing | `test_parse_place_without_hours_is_unknown_not_closed` |
 | routes | no transit route (this key returns none) | empty response | driving time × 1.2 plus five minutes, labelled in the check detail; straight line if that fails too | `test_verifier_falls_back_to_straight_line_when_routes_fails` |
 | research.* | one source down or rate limited | `ToolError` from the source | the other sources still run, the failure is noted in the state, the draft proceeds; zero sources fails loudly | `test_one_dead_source_does_not_kill_the_run`, `test_no_source_at_all_fails_loudly` |
-| gemini | 429, 5xx, model overloaded | `RetryableError` inside `complete_json` | four attempts, 3s/6s/9s backoff, then the stage fails loudly | `test_retries_a_busy_model_then_succeeds`, `test_gives_up_after_the_last_attempt` |
-| gemini | answer does not match the schema | `SchemaError` in `complete_json` | one corrective retry with the validation errors in the prompt, then it propagates | `test_malformed_answer_gets_one_corrective_retry` |
+| model | 429, 5xx, overloaded (529) | `RetryableError` inside `complete_json` | four attempts, 3s/6s/9s backoff, then the stage fails loudly | `test_retries_a_busy_model_then_succeeds`, `test_gives_up_after_the_last_attempt` |
+| model | answer does not match the schema | `SchemaError` in `complete_json` | one corrective retry with the validation errors in the prompt, then it propagates | `test_malformed_answer_gets_one_corrective_retry` |
 | any tool | every call | `CallLog` | one JSONL line per attempt with latency and outcome, no request or response bodies; the evals and this brief read that log | `test_fixture_runs_end_to_end` (asserts the log) |
 
 ## 4. Eval results
@@ -87,6 +87,7 @@ Yoyogi Park to Kiyosumi Gardens leg was 55 minutes. All four appear in the state
 - Real payment: Duffel test mode only, by design, all day.
 - Transit: Google Routes returns no transit route on our key, so travel time is a driving-based estimate labelled
   as such. It is conservative in rail-heavy cities and the 45-minute cap is applied to it as-is.
-- Gemini: free-tier quota forced Flash Lite for every call; the larger Flash models returned 503 on long
+- Model: switched from Gemini to Claude at 13:40 PT after the Gemini prepay balance ran out mid-afternoon; Gemini
+  stays selectable with `LLM_PROVIDER=gemini`. Before that, free-tier quota forced Flash Lite for every call; the larger Flash models returned 503 on long
   structured prompts or ran out of quota within minutes.
 - Calendar: fake unless Lane C's C4 lands before the freeze.

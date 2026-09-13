@@ -27,11 +27,11 @@ planner, places and verifier (`evals/results/af0f849.md`), and the brief filled 
 
 In progress: Lane D flights (search working in Duffel test mode, order and gate next). Open: C3 (model-backed
 refine and replacement) and C4 (calendar). Cut: activities, Duffel Stays (needs a commercial agreement), Reddit's
-own API (policy), TikTok. Model: Gemini Flash Lite for everything; the bigger Flash models are unusable on the
+own API (policy), TikTok. Model: Claude (Sonnet 5 main, Haiku 4.5 fast) since 13:40 PT; Gemini stays behind LLM_PROVIDER=gemini. Before that, Flash Lite for everything; the bigger Flash models were unusable on the
 free tier today. Transit: Routes returns no transit route on our key, so travel time is a labelled driving-based
 estimate.
 
-Demo path stays Tokyo. Keys each machine needs for a full real run: `GEMINI_API_KEY`, `GOOGLE_MAPS_API_KEY`,
+Demo path stays Tokyo. Keys each machine needs for a full real run: `ANTHROPIC_API_KEY`, `GOOGLE_MAPS_API_KEY`,
 `YOUTUBE_API_KEY`, `EXA_API_KEY`, `DUFFEL_API_KEY`.
 
 ---
@@ -76,7 +76,7 @@ multiagent-hackathon/
     models.py                 pydantic models below
     tools.py                  Protocols below
     fakes.py                  a deterministic offline fake for every Protocol
-    llm.py                    complete_json(prompt, Schema) over Gemini
+    llm.py                    complete_json(prompt, Schema) over Claude (Gemini fallback)
     fixtures/tokyo.json       the seed trip: Tokyo, 5 days, food and art, 2 travellers, plus 18 signals
   packages/research/          Owner: B. Reddit, YouTube, web search -> Signal[]
   packages/itinerary/         Owner: C. draft, patch, verify, calendar
@@ -252,7 +252,7 @@ Catch-up format (12:45 and 14:00), three lines per lane: done, next, blocked. Ne
 External apps: Reddit, YouTube, Google Places and Routes, Duffel, Viator or Amadeus, Google Calendar. Six, against
 a minimum of three.
 
-Decided at 11:00 PT: Python and Gemini. Neither changes today.
+Decided at 11:00 PT: Python and Gemini. Revised at 13:40 PT: Claude, after the Gemini balance ran out; Gemini stays as the fallback provider.
 
 ---
 
