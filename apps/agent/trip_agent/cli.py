@@ -68,7 +68,7 @@ def summary(state: TripState, log: CallLog) -> str:
     brief = state.brief
     lines = [
         f"{brief.destination} from {brief.origin}, {brief.start_date} to {brief.end_date}, {brief.travellers} pax",
-        f"signals: {len(state.signals)} from {sorted({signal.source for signal in state.signals})}",
+        f"signals: {len(state.signals)} from {', '.join(sorted({signal.source.value for signal in state.signals}))}",
     ]
     if state.itinerary is not None:
         stops = state.itinerary.stops()
