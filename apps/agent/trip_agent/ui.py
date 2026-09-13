@@ -390,6 +390,8 @@ def main() -> None:
         if state is not None:
             signals_list(state)
     state = current_state()
+    if (message := st.session_state.pop("stage_error", None)) is not None:
+        st.error(message)
     if state is None or state.itinerary is None:
         hero(photo=True)
         step_indicator(state)
@@ -405,7 +407,8 @@ def main() -> None:
 
 def run_in_modal(label: str, tips: list[str], seconds: int, work: Callable[[], TripState]) -> None:
     """Opens a modal the user cannot dismiss, keeps the bar moving while `work` blocks, then reruns with the result.
-    The rerun closes the dialog."""
+    The rerun closes the dialog. A dialog is a fragment, so a button inside it would re-run `work`; an error is
+    therefore parked in session state and shown on the page after the rerun instead."""
 
     @st.dialog(label, dismissible=False)
     def modal() -> None:
@@ -414,10 +417,7 @@ def run_in_modal(label: str, tips: list[str], seconds: int, work: Callable[[], T
         try:
             st.session_state["state"] = work()
         except ToolError as error:
-            st.error(f"A tool failed, so this step stopped: {error}")
-            if st.button("Close", key=f"close-{label}"):
-                st.rerun()
-            return
+            st.session_state["stage_error"] = f"A tool failed, so this step stopped: {error}"
         st.rerun()
 
     modal()
@@ -648,6 +648,7 @@ def finish(state: TripState, tools: Tools, answers: dict[str, str]) -> TripState
     """Refine with the answers, verify, search bookings, export the calendar."""
     log = log_for(state)
     state = stage_verify(stage_refine(state, tools, log, answers), tools, log)
+    state.options = []  # stage_search appends; a resubmit after a failure must not duplicate the Book buttons
     return stage_calendar(stage_search(state, tools, log), tools, log)
 
 
