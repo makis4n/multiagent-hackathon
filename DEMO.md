@@ -29,18 +29,23 @@ Reload the page once so the caption reads the real tools you expect plus "bookin
 
 ## Beats
 
-| at | on screen | say |
-| --- | --- | --- |
-| 0:00 | The form, filled. Click Plan trip. | "Five days in Tokyo for two people who like food and art." |
-| 0:15 | "What people are saying" fills with sources and dates. | "It reads what people posted recently on Reddit and YouTube, with dates, not a guidebook." |
-| 0:35 | The draft, day by day, status draft. | "First draft. Every stop cites the post it came from. Nothing is checked yet." |
-| 0:50 | The questions. Leave "skip: Shibuya Sky", answer one more. Click Check and finish. | "It asks a few things instead of guessing. Answers become edits, never a rewrite." |
-| 1:05 | The warning: a venue closed at that hour, swapped. Verified 100%. | "Every stop is checked against Google: does it exist, is it open then, can you get there in time. This one was closed, so it swapped it." |
-| 1:25 | Book. Click Book on the flight. The order appears once. | "Flights through Duffel, in test mode. Nothing is booked until I click. That call failed at the provider and retried: one booking, not two, because every order carries an idempotency key." |
-| 1:40 | The order line on screen, with its Duffel reference. | "Stays would go the same way; Duffel Stays needs a commercial agreement, so today it's flights." |
-| 1:52 | Open calendar. | "And it's in the calendar." |
+Measured on real tools at 13:20 PT: research 12 s, draft 7 s, verification 22 s. Two waits, about 19 s and 22 s.
+Talk through both; never stare at a spinner in silence. One take fits two minutes without cuts.
 
-The injected failure hits the first order call of the session, which is the flight click.
+| at | do | on screen | say |
+| --- | --- | --- | --- |
+| 0:00 | Read the filled form, click Plan trip. | The brief. | "Five days in Tokyo for two people who like food and art. One form, then the agent works." |
+| 0:10 | Wait, talking. | "Researching and drafting". | "It's reading about a hundred recent posts right now: YouTube vlogs and Reddit threads via web search, with dates. Not a guidebook, what people said this month." |
+| 0:28 | Point at the source list. | "What people are saying", titles with source and date. | "Every source is dated. Then Gemini drafts from those, and only those." |
+| 0:38 | Scroll the draft once. | Day tables, status draft. | "First draft. Every stop cites the post it came from. Nothing is checked yet, and it says so." |
+| 0:48 | Answer one question: type `skip: ` plus a place name copied exactly from the draft. Click Check and finish. | The questions. | "It asks instead of guessing. An answer becomes an edit to the plan, never a rewrite." |
+| 0:58 | Wait, talking. | "Refining and verifying every stop". | "Now every stop goes to Google: does the place exist, is it open at that hour on that weekday, can you get there in time from the previous stop. Twenty stops, a few hundred checks." |
+| 1:20 | Point at the warnings. | Swaps and removals with reasons; Stops verified 100%. | "This museum closes Mondays, so it swapped it. This leg was too far, so it dropped the stop and says why. What's left is verified." |
+| 1:35 | Click Book on the flight. | The order line with its reference. | "Flights through Duffel, test mode. Nothing is booked until I click. That call failed at the provider and retried; still one booking, because every order carries an idempotency key." |
+| 1:50 | Scroll to the top of the plan. | The finished plan. | "Ten test trips run through this same loop and pass every check. That's the trip, verified, with receipts." |
+
+The `skip:` answer must match a place name in the draft exactly, or nothing is removed. Pick one from the first
+day's table before you start talking.
 
 ## If something breaks mid-take
 
