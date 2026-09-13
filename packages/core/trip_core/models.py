@@ -97,6 +97,7 @@ class Place(BaseModel):
     )
     rating: float | None = None
     price_level: int | None = None
+    photo_url: str | None = Field(default=None, description="a public image URL for the place, if the resolver has one")
 
     def is_open(self, on: dt.date, at: dt.time) -> bool | None:
         """True or False when hours are known, None when unknown."""

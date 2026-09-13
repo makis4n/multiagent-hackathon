@@ -228,6 +228,11 @@ table.manifest tr:last-child td {{ border-bottom: none; }}
   width: 6.5rem;
 }}
 .stop-cat {{ opacity: 0.55; font-size: 0.8rem; width: 5.5rem; }}
+.stop-photo {{ width: 6rem; padding-right: 0.6rem; }}
+.stop-photo img {{
+  width: 5.5rem; height: 4rem; object-fit: cover; border-radius: 4px; display: block;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}}
 .stop-place {{ font-weight: 600; margin-right: 0.5rem; }}
 .stop-status {{ font-size: 0.72rem; }}
 .stop-status::before {{ content: "\\25A0"; font-size: 0.55rem; margin-right: 0.3rem; }}
@@ -489,9 +494,16 @@ def itinerary_view(state: TripState) -> None:
         for stop in day.stops:
             reason = f' title="{esc(stop.failure_reason)}"' if stop.failure_reason else ""
             status = esc(stop.status.value)
+            place = state.places.get(stop.place_id) if stop.place_id else None
+            photo = (
+                f'<img src="{esc(place.photo_url)}" alt="{esc(stop.place_name)}" loading="lazy">'
+                if place is not None and place.photo_url
+                else ""
+            )
             rows.append(
                 "<tr>"
                 f'<td class="stop-time">{stop.start:%H:%M}–{stop.end:%H:%M}</td>'
+                f'<td class="stop-photo">{photo}</td>'
                 f'<td class="stop-cat">{esc(stop.category)}</td>'
                 "<td>"
                 f'<span class="stop-place">{esc(stop.place_name)}</span>'

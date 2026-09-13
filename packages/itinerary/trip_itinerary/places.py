@@ -11,7 +11,9 @@ from trip_core.models import OpeningRange, Place, RetryableError, ToolError
 
 SEARCH_URL = "https://places.googleapis.com/v1/places:searchText"
 DETAILS_URL = "https://places.googleapis.com/v1/places/{place_id}"
-FIELDS = ["id", "displayName", "formattedAddress", "location", "regularOpeningHours", "rating", "priceLevel"]
+FIELDS = ["id", "displayName", "formattedAddress", "location", "regularOpeningHours", "rating", "priceLevel", "photos"]
+PHOTO_URL = "https://places.googleapis.com/v1/{name}/media"
+PHOTO_WIDTH = 640
 PRICE_LEVELS = {
     "PRICE_LEVEL_FREE": 0,
     "PRICE_LEVEL_INEXPENSIVE": 1,
@@ -35,6 +37,7 @@ class GooglePlaces:
         if not found:
             return None
         place = parse_place(found[0])
+        place.photo_url = self._photo(found[0])
         self.places[place.id] = place
         return place
 
@@ -49,8 +52,26 @@ class GooglePlaces:
                 return None
             raise
         place = parse_place(data)
+        place.photo_url = self._photo(data)
         self.places[place.id] = place
         return place
+
+    def _photo(self, data: dict[str, Any]) -> str | None:
+        """The first photo's public URI, or None. A photo is decoration: its failure never fails the place."""
+        photos = data.get("photos") or []
+        name = photos[0].get("name") if photos and isinstance(photos[0], dict) else None
+        if not name:
+            return None
+        headers = {"X-Goog-Api-Key": self.api_key}
+        params = {"maxWidthPx": PHOTO_WIDTH, "skipHttpRedirect": "true"}
+        try:
+            response = self.client.get(PHOTO_URL.format(name=name), headers=headers, params=params)
+        except httpx.HTTPError:
+            return None
+        if response.status_code >= 400:
+            return None
+        uri = response.json().get("photoUri")
+        return uri if isinstance(uri, str) and uri.startswith("https://") else None
 
     def _request(self, method: str, url: str, *, mask: str, json: dict[str, Any] | None = None) -> dict[str, Any]:
         headers = {"X-Goog-Api-Key": self.api_key, "X-Goog-FieldMask": mask, "Content-Type": "application/json"}

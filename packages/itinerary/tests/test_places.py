@@ -66,6 +66,27 @@ def test_parse_place_without_hours_is_unknown_not_closed() -> None:
     assert place.is_open(dt.date(2026, 11, 12), dt.time(10, 0)) is None
 
 
+def _client_with_photo(photo_status: int) -> httpx.Client:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/media"):
+            assert request.url.params["skipHttpRedirect"] == "true"
+            return httpx.Response(photo_status, json={"photoUri": "https://lh3.googleusercontent.com/p/abc"})
+        found = dict(SAMPLE_PLACE, photos=[{"name": "places/ChIJ_tsukiji/photos/xyz", "widthPx": 4000}])
+        return httpx.Response(200, json={"places": [found]})
+
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def test_resolve_attaches_the_first_photo_as_a_public_url() -> None:
+    place = GooglePlaces("k", client=_client_with_photo(200)).resolve("Tsukiji Outer Market", "Tokyo")
+    assert place is not None and place.photo_url == "https://lh3.googleusercontent.com/p/abc"
+
+
+def test_a_failed_photo_lookup_leaves_the_place_without_one() -> None:
+    place = GooglePlaces("k", client=_client_with_photo(500)).resolve("Tsukiji Outer Market", "Tokyo")
+    assert place is not None and place.photo_url is None and place.name == "Tsukiji Outer Market"
+
+
 def test_parse_duration() -> None:
     assert parse_duration_minutes({"routes": [{"duration": "1234s"}]}) == 21
     assert parse_duration_minutes({"routes": [{"duration": "59.5s"}]}) == 1
