@@ -1,0 +1,42 @@
+# Visual identity for the Streamlit page (apps/agent/trip_agent/ui.py). Only Lane A edits this alongside ui.py.
+# Palette: warm parchment and honey tones, an amber "book it" accent, olive for verified, brick for
+# failed/removed. Warm on purpose: the page should feel like a lantern-lit travel notebook, not a ledger.
+
+[theme]
+base = "light"
+
+primaryColor = "#C1650B"
+backgroundColor = "#F5EBD8"
+secondaryBackgroundColor = "#EDDCB6"
+textColor = "#3A2A1E"
+
+font = "IBM Plex Mono, monospace"
+headingFont = "Newsreader, serif"
+codeFont = "IBM Plex Mono, monospace"
+baseFontSize = 15
+baseRadius = "0.5rem"
+buttonRadius = "0.5rem"
+
+borderColor = "#CEAD79"
+dataframeBorderColor = "#CEAD79"
+dataframeHeaderBackgroundColor = "#EDDCB6"
+showWidgetBorder = true
+
+linkColor = "#C1650B"
+linkUnderline = true
+
+greenColor = "#5E7C3A"
+greenTextColor = "#4A6430"
+greenBackgroundColor = "#DFE7C6"
+
+orangeColor = "#A67C3D"
+orangeTextColor = "#8C6329"
+orangeBackgroundColor = "#F1DFB6"
+
+redColor = "#9C3D28"
+redTextColor = "#86321F"
+redBackgroundColor = "#EBD3C2"
+
+blueColor = "#C1650B"
+blueTextColor = "#C1650B"
+blueBackgroundColor = "#F5DFB8"
