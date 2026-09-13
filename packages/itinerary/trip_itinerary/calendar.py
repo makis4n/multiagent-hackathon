@@ -24,7 +24,7 @@ from urllib.parse import quote
 
 import httpx
 
-from trip_core.models import Itinerary, RetryableError, Stop, ToolError, TripBrief
+from trip_core.models import Itinerary, RetryableError, Stop, StopStatus, ToolError, TripBrief
 from trip_itinerary.credentials import TokenProvider
 
 log = logging.getLogger(__name__)
@@ -35,6 +35,7 @@ CALENDAR_TIMEZONE_ENV = "TRIP_CALENDAR_TIMEZONE"
 DEFAULT_CALENDAR_TIMEZONE = "UTC"
 CALENDAR_WEB_URL = "https://calendar.google.com/calendar/u/0/r?cid="
 _UNKNOWN_STATUS = "unknown"
+_ITINERARY_PROPERTY = "trip_itinerary_id"
 
 
 class CalendarNotFound(ToolError):
@@ -64,6 +65,7 @@ class CalendarExporter:
                 json_body={"summary": _calendar_name(brief), "timeZone": self._timezone},
             )
             calendar_id = _calendar_id(created, "create calendar")
+        self._delete_stale_events(calendar_id, itinerary)
         self._write_events(calendar_id, itinerary)
         return f"{CALENDAR_WEB_URL}{quote(calendar_id, safe='@')}"
 
@@ -95,6 +97,34 @@ class CalendarExporter:
                     self._client.request("POST", path, json_body=event)
                 except CalendarConflict:
                     self._client.request("PUT", f"{path}/{event_id}", json_body=event)
+
+    def _delete_stale_events(self, calendar_id: str, itinerary: Itinerary) -> None:
+        path = f"/calendars/{quote(calendar_id, safe='')}/events"
+        current_ids = {_event_id(itinerary.id, stop.id) for stop in itinerary.stops()}
+        page_token: str | None = None
+        while True:
+            params = {"privateExtendedProperty": f"{_ITINERARY_PROPERTY}={itinerary.id}"}
+            if page_token is not None:
+                params["pageToken"] = page_token
+            page = self._client.request("GET", path, params=params)
+            items: object = page.get("items", [])
+            if not isinstance(items, list):
+                raise ToolError("the Google Calendar API returned event list items that are not a list")
+            for item in items:
+                if not isinstance(item, dict):
+                    raise ToolError("the Google Calendar API returned an event list item that is not an object")
+                event_id = _calendar_id(item, "event list")
+                if event_id not in current_ids:
+                    try:
+                        self._client.request("DELETE", f"{path}/{quote(event_id, safe='')}")
+                    except CalendarNotFound:
+                        pass
+            next_token: object = page.get("nextPageToken")
+            if next_token is None:
+                return
+            if not isinstance(next_token, str) or not next_token:
+                raise ToolError("the Google Calendar API returned an invalid event list page token")
+            page_token = next_token
 
 
 class CalendarClient:
@@ -214,10 +244,17 @@ def _calendar_id(calendar: Mapping[str, Any], source: str) -> str:
 
 
 def _event_body(date: dt.date, stop: Stop, itinerary_id: str, timezone: str, event_id: str) -> dict[str, object]:
+    summary = stop.place_name
+    description = f"{stop.why}\n\nItinerary: {itinerary_id}"
+    if stop.status == StopStatus.failed:
+        summary = f"Unverified: {summary}"
+        reason = stop.failure_reason if stop.failure_reason else "No verification reason was provided."
+        description = f"{stop.why}\n\nVerification failed: {reason}\n\nItinerary: {itinerary_id}"
     return {
         "id": event_id,
-        "summary": stop.place_name,
-        "description": f"{stop.why}\n\nItinerary: {itinerary_id}",
+        "summary": summary,
+        "description": description,
+        "extendedProperties": {"private": {_ITINERARY_PROPERTY: itinerary_id}},
         "start": {"dateTime": _local_date_time(date, stop.start), "timeZone": timezone},
         "end": {"dateTime": _local_date_time(date, stop.end), "timeZone": timezone},
     }

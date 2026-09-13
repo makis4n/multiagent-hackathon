@@ -90,6 +90,9 @@ def test_creates_a_calendar_and_returns_its_url() -> None:
             return_value=httpx.Response(200, json=recorded("empty_calendar_list"))
         )
         created = mock.post("/calendars").mock(return_value=httpx.Response(200, json=recorded("created_calendar")))
+        mock.get("/calendars/tokyo-2026-11-12%40group.calendar.google.com/events").mock(
+            return_value=httpx.Response(200, json={"items": []})
+        )
         with CalendarClient(StaticTokenProvider("fake-token")) as client:
             result = CalendarExporter(client, timezone="Europe/Stockholm").export(itinerary(), brief())
 
@@ -107,6 +110,9 @@ def test_reuses_the_named_calendar_for_the_same_itinerary() -> None:
             return_value=httpx.Response(200, json=recorded("existing_calendar_list"))
         )
         created = mock.post("/calendars").mock(return_value=httpx.Response(200, json=recorded("created_calendar")))
+        mock.get("/calendars/tokyo-2026-11-12%40group.calendar.google.com/events").mock(
+            return_value=httpx.Response(200, json={"items": []})
+        )
         with CalendarClient(StaticTokenProvider("fake-token")) as client:
             exporter = CalendarExporter(client, timezone="Europe/Stockholm")
             first = exporter.export(itinerary(), brief())
@@ -122,6 +128,9 @@ def test_calendar_timezone_defaults_to_utc(monkeypatch: pytest.MonkeyPatch) -> N
     with respx.mock(base_url=CALENDAR_API_BASE) as mock:
         mock.get("/users/me/calendarList").mock(return_value=httpx.Response(200, json=recorded("empty_calendar_list")))
         created = mock.post("/calendars").mock(return_value=httpx.Response(200, json=recorded("created_calendar")))
+        mock.get("/calendars/tokyo-2026-11-12%40group.calendar.google.com/events").mock(
+            return_value=httpx.Response(200, json={"items": []})
+        )
         with CalendarClient(StaticTokenProvider("fake-token")) as client:
             CalendarExporter(client).export(itinerary(), brief())
 
@@ -133,6 +142,7 @@ def test_one_event_per_stop_uses_day_dates_and_calendar_timezone() -> None:
         mock.get("/users/me/calendarList").mock(
             return_value=httpx.Response(200, json=recorded("existing_event_calendar_list"))
         )
+        mock.get("/calendars/trip-calendar/events").mock(return_value=httpx.Response(200, json={"items": []}))
         inserted = mock.post("/calendars/trip-calendar/events").mock(
             return_value=httpx.Response(200, json=recorded("inserted_event"))
         )
@@ -148,18 +158,21 @@ def test_one_event_per_stop_uses_day_dates_and_calendar_timezone() -> None:
         {
             "summary": "Tsukiji Outer Market",
             "description": "Fresh sushi for breakfast.\n\nItinerary: it-tokyo-2026-11",
+            "extendedProperties": {"private": {"trip_itinerary_id": "it-tokyo-2026-11"}},
             "start": {"dateTime": "2026-11-12T10:00:00", "timeZone": "Europe/Stockholm"},
             "end": {"dateTime": "2026-11-12T12:00:00", "timeZone": "Europe/Stockholm"},
         },
         {
             "summary": "teamLab Planets",
             "description": "Immersive digital art.\n\nItinerary: it-tokyo-2026-11",
+            "extendedProperties": {"private": {"trip_itinerary_id": "it-tokyo-2026-11"}},
             "start": {"dateTime": "2026-11-12T14:30:00", "timeZone": "Europe/Stockholm"},
             "end": {"dateTime": "2026-11-12T16:00:00", "timeZone": "Europe/Stockholm"},
         },
         {
             "summary": "Yanaka Ginza",
             "description": "A traditional shopping street.\n\nItinerary: it-tokyo-2026-11",
+            "extendedProperties": {"private": {"trip_itinerary_id": "it-tokyo-2026-11"}},
             "start": {"dateTime": "2026-11-13T09:15:00", "timeZone": "Europe/Stockholm"},
             "end": {"dateTime": "2026-11-13T11:45:00", "timeZone": "Europe/Stockholm"},
         },
@@ -192,6 +205,7 @@ def test_aware_stop_times_are_sent_as_offset_free_local_times() -> None:
         mock.get("/users/me/calendarList").mock(
             return_value=httpx.Response(200, json=recorded("existing_event_calendar_list"))
         )
+        mock.get("/calendars/trip-calendar/events").mock(return_value=httpx.Response(200, json={"items": []}))
         inserted = mock.post("/calendars/trip-calendar/events").mock(
             return_value=httpx.Response(200, json=recorded("inserted_event"))
         )
@@ -211,6 +225,7 @@ def test_second_export_updates_instead_of_duplicating() -> None:
         mock.get("/users/me/calendarList").mock(
             return_value=httpx.Response(200, json=recorded("existing_event_calendar_list"))
         )
+        mock.get("/calendars/trip-calendar/events").mock(return_value=httpx.Response(200, json={"items": []}))
         inserted = mock.post("/calendars/trip-calendar/events").mock(
             side_effect=[
                 httpx.Response(200, json=recorded("inserted_event")),
@@ -240,6 +255,7 @@ def test_insert_conflict_falls_back_to_update() -> None:
         mock.get("/users/me/calendarList").mock(
             return_value=httpx.Response(200, json=recorded("existing_event_calendar_list"))
         )
+        mock.get("/calendars/trip-calendar/events").mock(return_value=httpx.Response(200, json={"items": []}))
         inserted = mock.post("/calendars/trip-calendar/events").mock(
             side_effect=[
                 httpx.Response(409, json={"error": {"status": "ALREADY_EXISTS"}}),
@@ -257,3 +273,87 @@ def test_insert_conflict_falls_back_to_update() -> None:
     assert updated.call_count == 1
     updated_id = updated.calls.last.request.url.path.rsplit("/", 1)[-1]
     assert json.loads(updated.calls.last.request.content)["id"] == updated_id
+
+
+def test_removed_stop_is_deleted_but_surviving_stop_is_not() -> None:
+    original = itinerary_with_stops()
+    survivor = original.model_copy(
+        update={"days": [Day(date=original.days[0].date, stops=[original.days[0].stops[0]])]}
+    )
+    removed_id = _event_id_for_test(original.id, original.days[0].stops[1].id)
+    surviving_id = _event_id_for_test(original.id, original.days[0].stops[0].id)
+    with respx.mock(base_url=CALENDAR_API_BASE) as mock:
+        mock.get("/users/me/calendarList").mock(
+            return_value=httpx.Response(200, json=recorded("existing_event_calendar_list"))
+        )
+        events = mock.get("/calendars/trip-calendar/events").mock(
+            return_value=httpx.Response(200, json={"items": [{"id": removed_id}, {"id": surviving_id}]})
+        )
+        deleted = mock.delete(url__regex=rf"/calendars/trip-calendar/events/{removed_id}$").mock(
+            return_value=httpx.Response(204)
+        )
+        mock.post("/calendars/trip-calendar/events").mock(
+            return_value=httpx.Response(200, json=recorded("inserted_event"))
+        )
+        with CalendarClient(StaticTokenProvider("fake-token")) as client:
+            CalendarExporter(client, timezone="Europe/Stockholm").export(survivor, brief())
+
+    assert events.calls.last.request.url.params["privateExtendedProperty"] == "trip_itinerary_id=it-tokyo-2026-11"
+    assert deleted.call_count == 1
+    assert surviving_id not in deleted.calls.last.request.url.path
+
+
+def test_unverified_stop_is_labelled_with_its_failure_reason() -> None:
+    failed_stop = (
+        itinerary_with_stops()
+        .days[0]
+        .stops[0]
+        .model_copy(update={"status": "failed", "failure_reason": "The venue could not be verified as open."})
+    )
+    trip = Itinerary(
+        id="it-tokyo-2026-11",
+        brief_id="brief-tokyo",
+        days=[Day(date=dt.date(2026, 11, 12), stops=[failed_stop])],
+    )
+    with respx.mock(base_url=CALENDAR_API_BASE) as mock:
+        mock.get("/users/me/calendarList").mock(
+            return_value=httpx.Response(200, json=recorded("existing_event_calendar_list"))
+        )
+        mock.get("/calendars/trip-calendar/events").mock(return_value=httpx.Response(200, json={"items": []}))
+        inserted = mock.post("/calendars/trip-calendar/events").mock(
+            return_value=httpx.Response(200, json=recorded("inserted_event"))
+        )
+        with CalendarClient(StaticTokenProvider("fake-token")) as client:
+            CalendarExporter(client, timezone="Europe/Stockholm").export(trip, brief())
+
+    payload = json.loads(inserted.calls.last.request.content)
+    assert payload["summary"] == "Unverified: Tsukiji Outer Market"
+    assert "The venue could not be verified as open." in payload["description"]
+
+
+def test_missing_stale_event_is_already_gone() -> None:
+    trip = itinerary_with_stops()
+    stale_id = _event_id_for_test(trip.id, "removed-stop")
+    with respx.mock(base_url=CALENDAR_API_BASE) as mock:
+        mock.get("/users/me/calendarList").mock(
+            return_value=httpx.Response(200, json=recorded("existing_event_calendar_list"))
+        )
+        mock.get("/calendars/trip-calendar/events").mock(
+            return_value=httpx.Response(200, json={"items": [{"id": stale_id}]})
+        )
+        mock.delete(url__regex=rf"/calendars/trip-calendar/events/{stale_id}$").mock(
+            return_value=httpx.Response(404, json={"error": {"status": "NOT_FOUND"}})
+        )
+        inserted = mock.post("/calendars/trip-calendar/events").mock(
+            return_value=httpx.Response(200, json=recorded("inserted_event"))
+        )
+        with CalendarClient(StaticTokenProvider("fake-token")) as client:
+            CalendarExporter(client, timezone="Europe/Stockholm").export(trip, brief())
+
+    assert inserted.call_count == 3
+
+
+def _event_id_for_test(itinerary_id: str, stop_id: str) -> str:
+    from trip_itinerary.calendar import _event_id
+
+    return _event_id(itinerary_id, stop_id)
