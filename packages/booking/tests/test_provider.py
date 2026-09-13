@@ -12,7 +12,7 @@ import respx
 
 from trip_booking.duffel_client import DuffelClient
 from trip_booking.provider import DuffelBookingProvider, minor_units
-from trip_core.models import BookingKind, BookingOption, RetryableError, ToolError, TripBrief
+from trip_core.models import BookingKind, RetryableError, ToolError, TripBrief
 
 OFFER_REQUESTS_URL = "https://api.duffel.com/air/offer_requests"
 CASSETTES = Path(__file__).parent / "cassettes"
@@ -128,11 +128,3 @@ def test_a_timeout_raises_retryable_error() -> None:
 
     with pytest.raises(RetryableError):
         provider().search(tokyo(), BookingKind.flight)
-
-
-def test_order_is_not_implemented_yet() -> None:
-    option = BookingOption(
-        kind=BookingKind.flight, provider="duffel", provider_ref="off_x", title="x", price_minor=100, currency="EUR"
-    )
-    with pytest.raises(NotImplementedError):
-        provider().order(option, "key", dt.datetime(2026, 9, 13, tzinfo=dt.UTC))
