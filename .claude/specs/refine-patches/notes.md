@@ -54,3 +54,24 @@ The reviewer mutation-tested the seven tests from a copy outside the repo: remov
    rejected by the mapping, because Behaviour 5 requires a stop id that exists in the itinerary as passed in.
 5. Once the cap is reached the remaining candidates are recorded as over-the-cap without being applied, so one that
    was also inapplicable is reported only as a cap drop. Cheaper, and harmless.
+
+| 5 degrade on model failure | 5ae258d | pass with notes | four degrade tests reproduced red by the reviewer |
+
+## Task 5 notes, carried forward
+
+1. **Orchestrator's call: this one is a rule 12 breach, not a note, and task 6 fixes it.** `log.exception` writes the
+   full traceback, whose last line is the exception message. On the validation path that message quotes the model's
+   own output. Rule 12 reads "no raw request or response bodies. Log the stack, not the message." The drop line
+   itself is clean; only the logger leaks. One line to fix.
+2. **For task 7.** Nothing calls `logging.basicConfig`, so that traceback reaches the last-resort handler and prints
+   to stderr. A degrade is supposed to look like no change, not like a crash mid-run. Task 7 decides the handler.
+3. **For task 6.** The new `last_dropped` reset in `questions` is pinned by no test: deleting it leaves the suite
+   green, so stale refine drops would read as questions drops.
+4. **For task 6.** The "type name only, no message" property is unguarded. Rewriting the append to include the
+   message leaves the suite green, and that property is the rule 8 claim in the commit message. Pin the exact line.
+5. **For task 7.** `last_dropped` is read by nothing outside the tests. Behaviour 7 and 10 say drops are recorded;
+   today they are recorded nowhere a human looks. Surface it through the call log or the CLI.
+
+Confirmed clean by the reviewer: the catch is narrow, no `Exception` and no bare `except`, the prompt builders sit
+outside the try so a programming error still escapes, and an empty return from either method lets the loop fall
+through to resolve, verify and book with the itinerary unchanged.
