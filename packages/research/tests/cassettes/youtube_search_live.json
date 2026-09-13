@@ -1,0 +1,352 @@
+{
+  "kind": "youtube#searchListResponse",
+  "etag": "HW4r0gQEw7NoJ5HvAYM8YnYYARg",
+  "nextPageToken": "CAoQAA",
+  "regionCode": "SE",
+  "pageInfo": {
+    "totalResults": 436104,
+    "resultsPerPage": 10
+  },
+  "items": [
+    {
+      "kind": "youtube#searchResult",
+      "etag": "3PTJuSbOL5uhMy6BR5K3J3DPy48",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "RY1CAaGslyc"
+      },
+      "snippet": {
+        "publishedAt": "2025-02-26T04:00:26Z",
+        "channelId": "UC5bRW6t65qnSgVSuKYB-WSA",
+        "title": "TOKYO Food Guide | 40 Places to Eat &amp; Drink (With Prices!)",
+        "description": "There's a million things to do in Tokyo, but deciding where to eat will be the hardest decision you have to make in Tokyo!",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/RY1CAaGslyc/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/RY1CAaGslyc/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/RY1CAaGslyc/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Locavore Eats",
+        "liveBroadcastContent": "none",
+        "publishTime": "2025-02-26T04:00:26Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "fk_RlzNnjjGemr6-7unPs2zF7W4",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "US9Y9q5aTP4"
+      },
+      "snippet": {
+        "publishedAt": "2025-11-26T23:13:00Z",
+        "channelId": "UCxH12tSiXAE8d5qB0vOT7yA",
+        "title": "I Tried All The Best Food In Tokyo, Japan! | Part 1",
+        "description": "Come along with Jack's Dining Room as we try all the best food in Tokyo, Japan. From wild street foods to traditional Japanese ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/US9Y9q5aTP4/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/US9Y9q5aTP4/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/US9Y9q5aTP4/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Jack's Dining Room ",
+        "liveBroadcastContent": "none",
+        "publishTime": "2025-11-26T23:13:00Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "bE2w1aQWhrMNAgn05MXPljneT38",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "sOE4896qQo8"
+      },
+      "snippet": {
+        "publishedAt": "2025-05-27T16:00:05Z",
+        "channelId": "UC3TIRH4PPSDde66Hg5wGh-w",
+        "title": "A Local&#39;s Guide to the Perfect Tokyo Experience | Internet vs Expert | Cond\u00e9 Nast Traveler",
+        "description": "Today, food writer Melinda Joe joins Cond\u00e9 Nast Traveler to audit some of the internet's most recommended destinations in ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/sOE4896qQo8/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/sOE4896qQo8/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/sOE4896qQo8/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Cond\u00e9 Nast Traveler",
+        "liveBroadcastContent": "none",
+        "publishTime": "2025-05-27T16:00:05Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "kfbNovasZbAY411GLaq_2mj_BaM",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "qgl8hYu7cEQ"
+      },
+      "snippet": {
+        "publishedAt": "2026-05-13T19:00:18Z",
+        "channelId": "UCJ1fxMQPo0Wy43sx0fslfjw",
+        "title": "The BEST Places to Eat in Tokyo (Without Long Queues!) - 2026 Tokyo Food Guide",
+        "description": "You don't have to wait 2 hours for incredible food in Tokyo! In this video, we're sharing the best \"no-queue\" alternatives to Tokyo's ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/qgl8hYu7cEQ/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/qgl8hYu7cEQ/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/qgl8hYu7cEQ/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "NALBA TRAVELS",
+        "liveBroadcastContent": "none",
+        "publishTime": "2026-05-13T19:00:18Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "oCC0l-TwJraOwB4Hlf10rH-li6g",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "AJiGaXRsFNU"
+      },
+      "snippet": {
+        "publishedAt": "2025-11-30T15:30:11Z",
+        "channelId": "UChBEbMKI1eCcejTtmI32UEw",
+        "title": "I Tried Every Viral Street Food in Japan",
+        "description": "Are the viral sensations of food in Japan as good as people say they are? our guides and homies: https://arigatojapan.co.jp/ Get ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/AJiGaXRsFNU/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/AJiGaXRsFNU/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/AJiGaXRsFNU/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Joshua Weissman",
+        "liveBroadcastContent": "none",
+        "publishTime": "2025-11-30T15:30:11Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "9yLJjjEmk7MIE0bHXWsthUi0p28",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "w9UP8d7UFvo"
+      },
+      "snippet": {
+        "publishedAt": "2024-10-26T19:39:15Z",
+        "channelId": "UCHL9bfHTxCMi-7vfxQ-AYtg",
+        "title": "12 Must Try Japanese Foods in Tokyo \ud83c\uddef\ud83c\uddf5 Ultimate Travel Guide",
+        "description": "Japan's incredible food is the envy of the world. We hit up 12 legendary restaurants with 12 mouthwatering dishes. RESERVE ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/w9UP8d7UFvo/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/w9UP8d7UFvo/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/w9UP8d7UFvo/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Abroad in Japan",
+        "liveBroadcastContent": "none",
+        "publishTime": "2024-10-26T19:39:15Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "dp19sR1vYBjC5Axn6gjYupFXa6E",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "w1Z5dOcyi7w"
+      },
+      "snippet": {
+        "publishedAt": "2025-02-22T21:35:36Z",
+        "channelId": "UCarSZcFQ6-0eqZrAG4pKoMA",
+        "title": "Best Things To Do in Tokyo Japan 2026 4K",
+        "description": "Are you looking for the best things to do in Tokyo, Japan? We just created a list of 25 must do activities for you to do while visiting ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/w1Z5dOcyi7w/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/w1Z5dOcyi7w/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/w1Z5dOcyi7w/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Island Hopper TV",
+        "liveBroadcastContent": "none",
+        "publishTime": "2025-02-22T21:35:36Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "IoYLSNTo24OM_0kcmu_ej6qO69c",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "wJa2yBCdglc"
+      },
+      "snippet": {
+        "publishedAt": "2026-01-05T14:01:41Z",
+        "channelId": "UC5RByeSeEN_aGhg1fq0TQWA",
+        "title": "Japan Travel Vlog: What to Eat &amp; Do in Tokyo (Food, Shopping &amp; Must-Sees) \ud83c\uddef\ud83c\uddf5\ud83c\udf61",
+        "description": "Here is what to eat in Tokyo and the best things to do in Tokyo 2026! I hope my Tokyo itinerary helps you see what life is like in ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/wJa2yBCdglc/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/wJa2yBCdglc/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/wJa2yBCdglc/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Maya Lee",
+        "liveBroadcastContent": "none",
+        "publishTime": "2026-01-05T14:01:41Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "Ld-2BAYemFU8Rfd95rupe2UKGkw",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "CcZaE8pn8nc"
+      },
+      "snippet": {
+        "publishedAt": "2023-07-17T00:34:58Z",
+        "channelId": "UCBotL9ONjqWuWgjV23Nallg",
+        "title": "10 Foods YOU MUST Try in Japan:  Food and Travel Guide",
+        "description": "Japan has so much delicious food - it was tough to limit our favorites to 10! We dive deep into the heart of Japanese cuisine, ...",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/CcZaE8pn8nc/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/CcZaE8pn8nc/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/CcZaE8pn8nc/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Explorin with Laurin",
+        "liveBroadcastContent": "none",
+        "publishTime": "2023-07-17T00:34:58Z"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "etag": "hDvugnPxWHGtXj1vaceQmz1wCe4",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "SujQYYwqENE"
+      },
+      "snippet": {
+        "publishedAt": "2023-04-13T17:00:13Z",
+        "channelId": "UCyN709sDswNC01TknEhA97A",
+        "title": "Everywhere you MUST eat in Tokyo! \ud83c\uddef\ud83c\uddf5\ud83c\udf59\ud83c\udf5c",
+        "description": "this is our full Tokyo list of recs\u2014 hard to include everything, but this is a good jumping off point! what are you grabbing first?",
+        "thumbnails": {
+          "default": {
+            "url": "https://i.ytimg.com/vi/SujQYYwqENE/default.jpg",
+            "width": 120,
+            "height": 90
+          },
+          "medium": {
+            "url": "https://i.ytimg.com/vi/SujQYYwqENE/mqdefault.jpg",
+            "width": 320,
+            "height": 180
+          },
+          "high": {
+            "url": "https://i.ytimg.com/vi/SujQYYwqENE/hqdefault.jpg",
+            "width": 480,
+            "height": 360
+          }
+        },
+        "channelTitle": "Nom Life",
+        "liveBroadcastContent": "none",
+        "publishTime": "2023-04-13T17:00:13Z"
+      }
+    }
+  ]
+}

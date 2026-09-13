@@ -155,3 +155,19 @@ def test_the_api_key_never_appears_in_a_recorded_error(api_key: None) -> None:
     source = YouTubeSource(now=NOW)
     source.search(tokyo())
     assert all("test-key" not in error for error in source.errors)
+
+
+@respx.mock
+def test_a_genuine_recording_parses_without_incident(api_key: None) -> None:
+    """youtube_search_live.json / youtube_videos_live.json: a real response, recorded 2026-09-13, not shaped
+    by hand. Proves the parsing matches the actual wire format, not just our reading of the docs."""
+    live_search = json.loads((CASSETTES / "youtube_search_live.json").read_text())
+    live_videos = json.loads((CASSETTES / "youtube_videos_live.json").read_text())
+    respx.get(SEARCH_URL).mock(return_value=httpx.Response(200, json=live_search))
+    respx.get(VIDEOS_URL).mock(return_value=httpx.Response(200, json=live_videos))
+
+    signals = YouTubeSource(now=NOW).search(tokyo())
+
+    assert len(signals) == len(live_search["items"])
+    assert all(signal.url.startswith("https://www.youtube.com/watch?v=") for signal in signals)
+    assert all(0.0 <= signal.score <= 1.0 for signal in signals)

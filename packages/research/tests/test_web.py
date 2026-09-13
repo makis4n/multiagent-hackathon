@@ -153,3 +153,17 @@ def test_a_missing_api_key_degrades_instead_of_raising(monkeypatch: pytest.Monke
     source = ExaSource(now=NOW)
     assert source.search(tokyo()) == []
     assert source.errors == ["key: ToolError"]
+
+
+@respx.mock
+def test_a_genuine_recording_parses_without_incident(api_key: None) -> None:
+    """exa_search_live.json: a real response, recorded 2026-09-13, not shaped by hand. Proves the parsing
+    matches the actual wire format, including real page text, not just our reading of the docs."""
+    live = json.loads((Path(__file__).parent / "cassettes" / "exa_search_live.json").read_text())
+    respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=live))
+
+    signals = ExaSource(now=NOW).search(tokyo())
+
+    assert len(signals) == len(live["results"])
+    assert all(signal.url for signal in signals)
+    assert all(0.0 <= signal.score <= 1.0 for signal in signals)
