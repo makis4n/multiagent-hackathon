@@ -23,6 +23,7 @@ from trip_core.models import (
 )
 
 CATEGORIES = ("food", "sight", "museum", "walk", "nightlife", "shopping", "nature", "rest")
+MAX_SIGNALS = 40
 SYSTEM = (
     "You plan city trips from what people posted recently. You only propose places that appear in the signals "
     "you are given, you cite the signal ids, and you answer with JSON that matches the schema exactly."
@@ -59,8 +60,10 @@ class GeminiPlanner:
         self.rules = FakePlanner()
 
     def draft(self, brief: TripBrief, signals: list[Signal]) -> Itinerary:
+        """The prompt carries the best MAX_SIGNALS signals; the ids it cites are checked against all of them."""
+        top = sorted(signals, key=lambda signal: signal.score, reverse=True)[:MAX_SIGNALS]
         result: DraftItinerary = self.complete(
-            draft_prompt(brief, signals), DraftItinerary, model=model_main(), system=SYSTEM, temperature=0.3
+            draft_prompt(brief, top), DraftItinerary, model=model_main(), system=SYSTEM, temperature=0.3
         )
         return to_itinerary(brief, signals, result)
 

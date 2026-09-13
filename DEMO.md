@@ -8,7 +8,7 @@ agent is doing, not what we built.
 
 ```sh
 git pull --rebase origin main
-cp .env.example .env            # fill the keys; set the REAL_* flags that are green in evals/results
+cp .env.example .env            # fill the keys, then: REAL_RESEARCH=1 REAL_PLANNER=1 REAL_PLACES=1 REAL_VERIFIER=1 REAL_BOOKING=1
 echo INJECT_BOOKING_FAILURE=1 >> .env
 make check && make fixture      # both green, or do not record
 make ui
