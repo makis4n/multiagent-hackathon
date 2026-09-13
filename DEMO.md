@@ -58,14 +58,14 @@ sentence once the result is on screen.
 **0:10, the loading bar.** Sixteen seconds on screen. Start talking as the bar appears.
 
 > So right now it's out reading. About a hundred posts from the last few weeks. YouTube vlogs, Reddit threads,
-> every one with a date on it. Not a guidebook from three years ago. What people are saying this month. —
+> every one dated. Not a guidebook from three years ago. What people are saying this month. —
 
 **0:26, the draft.** Point at the source list in the sidebar, then scroll the draft slowly, once. Twenty-four
 seconds.
 
-> There it is. Down the side, everything it read, each with a source and a date. And here's the first draft.
-> Four stops a day, and every stop tells you which post it came from, so you can click through and read it
-> yourself. Nothing's verified yet, and it's honest about that. They're all marked draft.
+> There it is. Down the side, everything it read, with a source and a date. And here's the first draft. Four
+> stops a day, and every stop says which post it came from, so you can click through and check. Nothing's
+> verified yet, and it's honest about that. They're all marked draft.
 
 **0:50, the question.** Read the skip question aloud. Type `skip:` and a place name copied exactly from the first
 day. Leave the rest blank. Click Check and finish the plan. Twelve seconds.
@@ -76,14 +76,14 @@ day. Leave the rest blank. Click Check and finish the plan. Twelve seconds.
 **1:02, the second loading bar.** Twenty seconds on screen. This is the part that matters, so slow down.
 
 > Now the boring part, the part nobody actually does. Every stop goes off to Google. Does the place exist. Is
-> it open at that hour, on that day of the week. Can you get there from the stop before it. Twenty stops, a
-> few hundred checks, all of them. —
+> it open at that hour, on that day of the week. Can you get there from the stop before. Twenty stops, a few
+> hundred checks. —
 
 **1:22, the verified plan.** The photo banner, the 100% tile, the swaps beside it. Point at one swap. Sixteen
 seconds.
 
-> Done. And look, this one's closed on Mondays, so it swapped it for somewhere nearby and tells me why, right
-> there. Everything left is verified, all of it, and the stops have faces now.
+> Done. And look, this one's closed on Mondays, so it swapped it and tells me why, right there. Everything
+> left is verified, all of it, and the stops have faces now.
 
 **1:38, book the flight.** Scroll to Book, click Book on the first flight, the reference appears. Fourteen
 seconds.
