@@ -15,6 +15,14 @@
       "errors": [{"domain": "calendar", "reason": "forbidden", "message": "leaked-body-marker again"}]
     }
   },
+  "unauthenticated": {
+    "error": {
+      "code": 401,
+      "message": "leaked-body-marker in the message",
+      "status": "UNAUTHENTICATED",
+      "errors": [{"domain": "global", "reason": "authError", "message": "leaked-body-marker again"}]
+    }
+  },
   "invalid": {
     "error": {
       "code": 400,

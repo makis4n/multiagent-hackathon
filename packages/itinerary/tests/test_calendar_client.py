@@ -52,23 +52,29 @@ def test_status_codes(caplog: pytest.LogCaptureFixture) -> None:
             return_value=httpx.Response(503, json=status_cassette("unavailable"))
         )
         forbidden = mock.get("/calendars/two").mock(return_value=httpx.Response(403, json=status_cassette("forbidden")))
-        bad = mock.get("/calendars/three").mock(return_value=httpx.Response(400, json=status_cassette("invalid")))
+        unauthenticated = mock.get("/calendars/three").mock(
+            return_value=httpx.Response(401, json=status_cassette("unauthenticated"))
+        )
+        bad = mock.get("/calendars/four").mock(return_value=httpx.Response(400, json=status_cassette("invalid")))
         with client() as calendar:
             with pytest.raises(RetryableError) as retryable:
                 calendar.request("GET", "/calendars/one")
             with pytest.raises(ToolError) as denied:
                 calendar.request("GET", "/calendars/two")
-            with pytest.raises(ToolError) as invalid:
+            with pytest.raises(ToolError) as unauthorised:
                 calendar.request("GET", "/calendars/three")
-        assert unavailable.called and forbidden.called and bad.called
-        assert mock.calls.call_count == 3
+            with pytest.raises(ToolError) as invalid:
+                calendar.request("GET", "/calendars/four")
+        assert unavailable.called and forbidden.called and unauthenticated.called and bad.called
+        assert mock.calls.call_count == 4
 
     assert "503" in str(retryable.value)
     assert "re-authorise" in str(denied.value)
+    assert "re-authorise" in str(unauthorised.value)
     assert "400" in str(invalid.value)
     assert "INVALID_ARGUMENT" in str(invalid.value)
     assert not isinstance(invalid.value, RetryableError)
-    for caught in (retryable, denied, invalid):
+    for caught in (retryable, denied, unauthorised, invalid):
         assert MARKER not in str(caught.value)
         assert MARKER not in repr(caught.value)
     assert MARKER not in caplog.text
