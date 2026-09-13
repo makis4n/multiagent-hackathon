@@ -1,6 +1,6 @@
 # trip-itinerary
 
-Status: **C1 (planner) and C2 (places, verifier) Wai Kin**; C3, C4 unclaimed. See `PLAN.md` here.
+Status: **C1 (planner) and C2 (places, verifier) Wai Kin**; C3 is issue #14; C4 (calendar) is cut for today. See `PLAN.md` here.
 
 Lane C. Four factories in `trip_itinerary/__init__.py`, each behind its own flag:
 
