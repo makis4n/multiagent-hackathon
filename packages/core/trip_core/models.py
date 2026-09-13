@@ -30,7 +30,10 @@ class TripBrief(BaseModel):
 
     id: str
     destination: str
-    origin: str = Field(description="where the traveller flies from: city or IATA code")
+    origin: str = Field(description="where the traveller flies from: an IATA airport or city code, e.g. ARN")
+    destination_code: str | None = Field(
+        default=None, description="IATA airport or city code for the destination, e.g. TYO; booking uses it"
+    )
     start_date: dt.date
     end_date: dt.date
     travellers: int = 2
@@ -43,6 +46,11 @@ class TripBrief(BaseModel):
         if self.end_date < self.start_date:
             raise ValueError("end_date is before start_date")
         return self
+
+    @property
+    def airports(self) -> tuple[str, str]:
+        """(origin, destination) codes for a flight search; the destination code falls back to the name."""
+        return self.origin.strip().upper(), (self.destination_code or self.destination).strip().upper()
 
     @property
     def nights(self) -> int:

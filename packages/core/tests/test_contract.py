@@ -105,3 +105,10 @@ def test_place_is_open() -> None:
     assert monday_only.is_open(monday, dt.time(18)) is False
     assert monday_only.is_open(sunday, dt.time(10)) is False
     assert Place(id="q", name="Q", lat=0, lng=0).is_open(monday, dt.time(10)) is None
+
+
+def test_airports_use_the_code_and_fall_back_to_the_name() -> None:
+    fixture = load_fixture("tokyo")
+    assert fixture.brief.airports == ("ARN", "TYO")
+    plain = fixture.brief.model_copy(update={"destination_code": None, "origin": "arn "})
+    assert plain.airports == ("ARN", "TOKYO")

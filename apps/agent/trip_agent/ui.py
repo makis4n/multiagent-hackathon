@@ -66,7 +66,10 @@ def brief_form(tools: Tools) -> None:
     st.subheader("Where to?")
     with st.form("brief"):
         destination = st.text_input("Destination", "Tokyo")
-        origin = st.text_input("Flying from", "ARN")
+        origin = st.text_input("Flying from (airport code)", "ARN")
+        destination_code = st.text_input(
+            "Destination airport code", "TYO", help="IATA code Duffel searches, e.g. TYO, LIS, NYC"
+        )
         start = st.date_input("Start", dt.date(2026, 11, 12))
         end = st.date_input("End", dt.date(2026, 11, 16))
         travellers = st.number_input("Travellers", min_value=1, max_value=8, value=2)
@@ -78,6 +81,7 @@ def brief_form(tools: Tools) -> None:
             id=f"ui-{re.sub(r'[^a-z0-9]+', '-', destination.lower())}-{start:%Y%m%d}",
             destination=destination,
             origin=origin,
+            destination_code=destination_code.strip() or None,
             start_date=start,
             end_date=end,
             travellers=int(travellers),

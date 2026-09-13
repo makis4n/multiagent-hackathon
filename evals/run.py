@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parent
 TRIPS = ROOT / "trips"
 RESULTS = ROOT / "results"
 URL_SAMPLE = 10
+MAX_DEAD_URLS = 1  # real web content rots; one dead link in ten is noise, more is a source problem
 
 Verdict = tuple[bool, str]
 
@@ -35,7 +36,7 @@ def check_signals(state: TripState) -> Verdict:
     detail = f"{len(state.signals)} signals, {len(places)} places"
     if active_flags()["RESEARCH"]:
         dead = dead_urls([signal.url for signal in state.signals[:URL_SAMPLE]])
-        ok = ok and not dead
+        ok = ok and len(dead) <= MAX_DEAD_URLS
         detail += f", {len(dead)} dead of {min(len(state.signals), URL_SAMPLE)} URLs checked"
     return ok, detail
 

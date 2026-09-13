@@ -6,5 +6,10 @@
   "end_date": "2026-10-25",
   "travellers": 2,
   "budget_band": "high",
-  "styles": ["museums", "food", "theatre"]
+  "styles": [
+    "museums",
+    "food",
+    "theatre"
+  ],
+  "destination_code": "NYC"
 }

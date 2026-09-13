@@ -6,5 +6,10 @@
   "end_date": "2026-11-09",
   "travellers": 3,
   "budget_band": "mid",
-  "styles": ["k-culture", "food", "shopping"]
+  "styles": [
+    "k-culture",
+    "food",
+    "shopping"
+  ],
+  "destination_code": "SEL"
 }
