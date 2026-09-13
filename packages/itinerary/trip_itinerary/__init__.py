@@ -1,6 +1,8 @@
 """Lane C. Draft, refine, resolve, verify, export."""
 
 from trip_core.tools import CalendarSink, ItineraryPlanner, PlaceResolver, Verifier
+from trip_itinerary.calendar import CalendarClient, CalendarExporter
+from trip_itinerary.credentials import GoogleTokenProvider
 
 
 def build_resolver() -> PlaceResolver:
@@ -20,4 +22,4 @@ def build_verifier(resolver: PlaceResolver) -> Verifier:
 
 def build_calendar() -> CalendarSink:
     """Google Calendar behind it. Selected by REAL_CALENDAR=1."""
-    raise NotImplementedError("Lane C: implement trip_itinerary.build_calendar()")
+    return CalendarExporter(CalendarClient(GoogleTokenProvider()))
