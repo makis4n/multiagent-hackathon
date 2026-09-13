@@ -39,7 +39,8 @@ table says so in the same commit, so nobody reads a fake draft as a real one.
 6. A stop the model adds or substitutes in carries a category, a one-sentence `why`, and `signal_ids` that are a
    subset of the ids actually passed in. An id the signals do not contain is stripped rather than invented.
 7. At most eight patches come back from one refinement round. Beyond that it is a regeneration wearing a patch
-   costume, so the extras are dropped and the itinerary notes say how many.
+   costume, so the extras are dropped and counted in `last_dropped` on the planner. `refine` returns patches and
+   nothing else, so a dropped patch is recorded on the planner rather than written into the itinerary.
 
 `ItineraryPlanner.replace_failed(brief, itinerary, report, signals)`:
 
@@ -50,7 +51,8 @@ table says so in the same commit, so nobody reads a fake draft as a real one.
 Both model-backed paths:
 
 10. A model failure degrades to no change: `RetryableError` or `ToolError` out of `complete_json`, or output that
-    does not validate, returns an empty patch list and records the reason. The traveller keeps the itinerary they
+    does not validate, returns an empty patch list and records the reason in `last_dropped`. `questions` degrades
+    the same way, to no questions. The traveller keeps the itinerary they
     were already looking at, and the run continues to resolve, verify and book.
 
 ## Failure handling
@@ -61,7 +63,7 @@ Both model-backed paths:
 | `complete_json` in `refine` | any model error | `RetryableError` or `ToolError` | returns no patches, the itinerary keeps its version |
 | model output | a patch that does not apply | `apply_patch` raises `ValueError` on a copy | that patch is dropped, the rest still return |
 | model output | a `signal_id` that was never passed in | set membership | the id is stripped from the stop |
-| model output | more than eight patches | length check | the extras are dropped and counted in the notes |
+| model output | more than eight patches | length check | the extras are dropped and counted in `last_dropped` |
 
 No bare `except`: each path catches `ToolError`, `RetryableError` or `ValidationError` by name.
 
@@ -77,8 +79,9 @@ Offline. `trip_core.llm.complete_json` is replaced with a stub that returns a pa
 | `tests/test_refine.py::test_returns_patches_not_an_itinerary` | a recorded remove and add | both are `ItineraryPatch`, and the itinerary passed in is unchanged |
 | `tests/test_refine.py::test_drops_a_patch_that_does_not_apply` | a remove naming a stop id that is not there | it is dropped, the other patch survives, nothing raises |
 | `tests/test_refine.py::test_strips_invented_signal_ids` | an added stop citing `sig-99` | the stop comes back citing only real ids |
-| `tests/test_refine.py::test_caps_the_patch_count` | a recorded payload of twelve patches | eight come back and the count is recorded |
+| `tests/test_refine.py::test_caps_the_patch_count` | a recorded payload of twelve patches | eight come back and the drop is counted in `last_dropped` |
 | `tests/test_refine.py::test_model_failure_returns_no_patches` | a stub raising `RetryableError` | an empty list, no exception, the reason recorded |
+| `tests/test_questions.py::test_model_failure_returns_no_questions` | a stub raising `ToolError` | an empty list, no exception, the loop skips the round |
 | `tests/test_replace_failed.py::test_one_patch_per_failed_stop` | a report failing two of six stops | two patches, and the four passing stops are untouched |
 | `tests/test_replace_failed.py::test_no_candidate_becomes_a_remove` | signals offering no unused place | the patch op is `remove` |
 | `tests/test_replace_failed.py::test_never_reuses_a_skipped_place` | an answer reading `skip: Night Market` | no patch puts that place back |
