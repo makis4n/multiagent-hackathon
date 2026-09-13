@@ -29,7 +29,10 @@ Reload the page once so the caption reads the real tools you expect plus "bookin
 
 ## Beats
 
-Measured on real tools at 13:20 PT: research 12 s, draft 7 s, verification 22 s. Two waits, about 19 s and 22 s.
+Measured on real tools at 13:20 PT on Gemini: research 12 s, draft 7 s, verification 22 s. Re-measured at 14:05 PT on
+Claude (Sonnet 5, effort low): research 28 s, draft 22 s, questions 4 s, verification with one replacement pass 38 s.
+Two waits, about 55 s and 40 s; the narration below covers both, and a rehearsal run right before recording is the
+only way to know today's numbers.
 Talk through both; never stare at a spinner in silence. One take fits two minutes without cuts.
 
 | at | do | on screen | say |

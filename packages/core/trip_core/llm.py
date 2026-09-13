@@ -1,8 +1,9 @@
 """The one place that talks to a model. Typed in, typed out.
 
-Claude is the default (LLM_PROVIDER=anthropic): the response schema goes in as a forced tool call, so the answer
-is JSON in the shape asked for. Gemini stays behind LLM_PROVIDER=gemini as the fallback it was before, with the
-same wrapper contract. Override models with ANTHROPIC_MODEL_MAIN / ANTHROPIC_MODEL_FAST (or GEMINI_MODEL_*).
+Claude is the default (LLM_PROVIDER=anthropic): the response schema goes in as a structured output format, so
+the answer is JSON in the shape asked for. ANTHROPIC_EFFORT (default low) trades depth for latency. Gemini stays
+behind LLM_PROVIDER=gemini as the fallback it was before, with the same wrapper contract. Override models with
+ANTHROPIC_MODEL_MAIN / ANTHROPIC_MODEL_FAST (or GEMINI_MODEL_*).
 
 Keep response schemas flat: pydantic models built from str, int, float, bool, lists and nested models, with
 `X | None` as the only union. No dicts. Both providers accept that subset; Gemini rejects the rest.
@@ -11,11 +12,12 @@ Keep response schemas flat: pydantic models built from str, int, float, bool, li
 from __future__ import annotations
 
 import os
+import re
 import time
 from typing import Any
 
 import anthropic
-from anthropic.types import MessageParam, ToolChoiceToolParam, ToolParam
+from anthropic.types import MessageParam, OutputConfigParam
 from pydantic import BaseModel, ValidationError
 
 from trip_core.models import RetryableError, ToolError
@@ -28,7 +30,8 @@ DEFAULTS = {
 RETRYABLE_CODES = {408, 409, 429, 500, 502, 503, 504, 529}
 BACKOFF_SECONDS = 3.0
 MAX_TOKENS = 8192
-ANSWER_TOOL = "answer"
+DEFAULT_EFFORT = "low"
+CLAUDE_5 = re.compile(r"claude-[a-z]+-5(?:-|$)")
 
 _anthropic: anthropic.Anthropic | None = None
 _gemini: Any = None
@@ -104,22 +107,19 @@ def anthropic_client() -> anthropic.Anthropic:
 
 
 def _anthropic_once[T: BaseModel](prompt: str, schema: type[T], *, model: str, system: str | None) -> T:
-    """The schema is the only tool and the call is forced to use it, so the answer is its input. Claude 5 takes
-    no temperature; the wrapper keeps the parameter for Gemini."""
-    tool = ToolParam(
-        name=ANSWER_TOOL,
-        description=f"Record the answer as {schema.__name__}.",
-        input_schema=schema.model_json_schema(),
-    )
+    """Structured output: the schema constrains decoding, so the text is JSON in that shape. Claude 5 takes no
+    temperature; the wrapper keeps the parameter for Gemini."""
     messages: list[MessageParam] = [{"role": "user", "content": prompt}]
+    output: OutputConfigParam = {"format": {"type": "json_schema", "schema": strict(schema.model_json_schema())}}
+    if CLAUDE_5.search(model):
+        output["effort"] = effort()
     try:
         response = anthropic_client().messages.create(
             model=model,
             max_tokens=MAX_TOKENS,
             system=system if system else anthropic.omit,
             messages=messages,
-            tools=[tool],
-            tool_choice=ToolChoiceToolParam(type="tool", name=ANSWER_TOOL),
+            output_config=output,
         )
     except anthropic.APIStatusError as error:
         if error.status_code in RETRYABLE_CODES:
@@ -127,13 +127,30 @@ def _anthropic_once[T: BaseModel](prompt: str, schema: type[T], *, model: str, s
         raise ToolError(f"anthropic {error.status_code}: {error.message}") from error
     except anthropic.APIConnectionError as error:
         raise RetryableError(f"anthropic: {type(error).__name__}") from error
-    payload = next((block.input for block in response.content if block.type == "tool_use"), None)
-    if payload is None:
-        raise SchemaError(f"no tool answer (stop_reason={response.stop_reason})")
+    text = "".join(block.text for block in response.content if block.type == "text")
+    if not text:
+        raise SchemaError(f"empty response (stop_reason={response.stop_reason})")
     try:
-        return schema.model_validate(payload)
+        return schema.model_validate_json(text)
     except ValidationError as error:
         raise SchemaError(str(error)[:800]) from error
+
+
+def effort() -> Any:
+    """Only the Claude 5 family takes an effort level; Haiku 4.5 rejects the parameter."""
+    return os.environ.get("ANTHROPIC_EFFORT", DEFAULT_EFFORT)
+
+
+def strict(node: Any) -> Any:
+    """Structured outputs demand additionalProperties: false on every object, $defs included. Pure."""
+    if isinstance(node, dict):
+        out = {key: strict(value) for key, value in node.items()}
+        if out.get("type") == "object" and "additionalProperties" not in out:
+            out["additionalProperties"] = False
+        return out
+    if isinstance(node, list):
+        return [strict(item) for item in node]
+    return node
 
 
 def gemini_client() -> Any:

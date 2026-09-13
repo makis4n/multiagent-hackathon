@@ -72,9 +72,9 @@ def test_two_malformed_answers_propagate(monkeypatch: pytest.MonkeyPatch) -> Non
 
 
 class _Block:
-    def __init__(self, type: str, input: object = None) -> None:
+    def __init__(self, type: str, text: str = "") -> None:
         self.type = type
-        self.input = input
+        self.text = text
 
 
 class _Response:
@@ -107,16 +107,25 @@ def _use(monkeypatch: pytest.MonkeyPatch, outcome: object) -> _Client:
     return client
 
 
-def test_claude_answers_through_the_forced_tool(monkeypatch: pytest.MonkeyPatch) -> None:
-    client = _use(monkeypatch, _Response([_Block("text"), _Block("tool_use", {"city": "Nara"})]))
+def test_claude_answers_in_the_schema(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = _use(monkeypatch, _Response([_Block("thinking"), _Block("text", '{"city": "Nara"}')]))
     assert llm.complete_json("q", Ping, system="s").city == "Nara"
     sent = client.messages.requests[0]
-    assert sent["tool_choice"] == {"type": "tool", "name": llm.ANSWER_TOOL}
+    output = sent["output_config"]
+    assert isinstance(output, dict)
+    assert output["format"] == {"type": "json_schema", "schema": llm.strict(Ping.model_json_schema())}
+    assert output["format"]["schema"]["additionalProperties"] is False
+    assert output["effort"] == "low"
     assert sent["system"] == "s"
 
 
+def test_effort_is_only_sent_to_the_claude_5_family() -> None:
+    assert llm.CLAUDE_5.search("claude-sonnet-5") and llm.CLAUDE_5.search("claude-opus-5-20260501")
+    assert not llm.CLAUDE_5.search("claude-haiku-4-5-20251001")
+
+
 def test_claude_wrong_shape_is_a_schema_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    _use(monkeypatch, _Response([_Block("tool_use", {"town": "Nara"})]))
+    _use(monkeypatch, _Response([_Block("text", '{"town": "Nara"}')]))
     with pytest.raises(SchemaError):
         llm.complete_json("q", Ping)
 
