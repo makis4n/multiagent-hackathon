@@ -12,3 +12,8 @@ Lane C. Four factories in `trip_itinerary/__init__.py`, each behind its own flag
 | `build_calendar()` | `CalendarSink` | `REAL_CALENDAR=1` | Google Calendar API v3 |
 
 `trip_core.fakes.FakeVerifier` is the reference for the checks: keep them, swap the travel time.
+
+The calendar sink talks to the Google Calendar API v3 over plain HTTP with `httpx`, not the Google API client
+library, so every test can record the traffic with `respx`. `google-auth-oauthlib` carries the OAuth flow that
+mints the token. Event times use the time zone in `TRIP_CALENDAR_TIMEZONE`, defaulting to UTC when it is unset.
+None of this runs yet: `build_calendar()` still raises `NotImplementedError` on this branch.

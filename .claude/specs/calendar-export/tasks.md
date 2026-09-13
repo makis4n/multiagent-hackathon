@@ -1,6 +1,6 @@
 # Tasks: calendar-export
 
-- [ ] 1. chore(itinerary): add httpx and google-auth-oauthlib to the package dependencies, declare TRIP_CALENDAR_TIMEZONE in .env.example, gitignore the cached token, relock
+- [x] 1. chore(itinerary): add httpx and google-auth-oauthlib to the package dependencies, declare TRIP_CALENDAR_TIMEZONE in .env.example, gitignore the cached token, relock
 - [ ] 2. feat(itinerary): credentials and token provider, cached token reused, missing credentials raises ToolError naming .env, with its test
 - [ ] 3. feat(itinerary): Calendar client over httpx with the status-code mapping to RetryableError and ToolError, with the recorded status test
 - [ ] 4. feat(itinerary): create or reuse the trip calendar and return its URL, with the recorded create test
