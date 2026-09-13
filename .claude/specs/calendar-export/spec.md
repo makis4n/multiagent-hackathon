@@ -14,7 +14,9 @@ Two changes outside the package, both small, both worth a line in the team chat 
 
 - `.env.example` gains `TRIP_CALENDAR_TIMEZONE=` under the Lane C group, empty, defaulting to UTC in code.
   `GOOGLE_CALENDAR_CREDENTIALS_JSON` is already declared.
-- `.gitignore` gains the cached OAuth token path, so a token can never be committed.
+- ~~`.gitignore` gains the cached OAuth token path~~. Superseded: the token caches outside the repository, under
+  the user's cache directory with `TRIP_CALENDAR_TOKEN_PATH` to override, so a token cannot reach the working tree
+  at all and no shared root file needs editing. A secret that cannot land in the tree beats one an ignore rule guards.
 
 `packages/itinerary/pyproject.toml` gains `httpx` and `google-auth-oauthlib` as runtime dependencies, which
 relocks `uv.lock`. Calendar API v3 is called over plain HTTP so every test can record it with `respx`.
@@ -38,8 +40,8 @@ relocks `uv.lock`. Calendar API v3 is called over plain HTTP so every test can r
 6. Exports every stop, including one the verifier failed, with the title prefixed `Unverified: ` and the reason
    in the description. Nothing the traveller planned disappears silently.
 7. Reads `GOOGLE_CALENDAR_CREDENTIALS_JSON` at the first call, not at import, and raises `ToolError` naming
-   `.env` when it is missing. The token is cached to the gitignored path and reused; the interactive OAuth flow
-   runs only when there is no valid cached token.
+   `.env` when it is missing. The token is cached outside the repository, owner-readable only, and reused; the
+   interactive OAuth flow runs only when there is no valid cached token.
 8. 429 and 5xx raise `RetryableError`. 401 and 403 raise `ToolError` telling the user to re-authorise. Every
    other non-2xx raises `ToolError` with the status and the Google error status string, never the response body
    and never the token. No bare `except`.
