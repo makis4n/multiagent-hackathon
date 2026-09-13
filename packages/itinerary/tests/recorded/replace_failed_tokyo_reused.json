@@ -1,0 +1,32 @@
+{
+  "patches": [
+    {
+      "op": "replace",
+      "stop_id": "stop-01",
+      "stop": {
+        "id": "stop-01-r",
+        "day": 0,
+        "start": "12:00",
+        "end": "14:00",
+        "place_name": "Golden Gai",
+        "category": "nightlife",
+        "why": "The only place the signals name that is not already booked.",
+        "signal_ids": ["sig-3"]
+      }
+    },
+    {
+      "op": "replace",
+      "stop_id": "stop-04",
+      "stop": {
+        "id": "stop-04-r",
+        "day": 1,
+        "start": "13:00",
+        "end": "15:00",
+        "place_name": "teamlab planets",
+        "category": "museum",
+        "why": "The signals name nothing else near this slot.",
+        "signal_ids": ["sig-3"]
+      }
+    }
+  ]
+}

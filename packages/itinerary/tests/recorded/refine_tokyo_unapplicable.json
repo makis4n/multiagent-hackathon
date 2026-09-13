@@ -1,0 +1,35 @@
+{
+  "patches": [
+    {
+      "op": "remove",
+      "stop_id": "stop-00"
+    },
+    {
+      "op": "move",
+      "stop_id": "stop-00",
+      "target_day": 1,
+      "position": null
+    },
+    {
+      "op": "move",
+      "stop_id": "stop-01",
+      "target_day": 9,
+      "position": null
+    },
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-03",
+        "day": 1,
+        "start": "09:30",
+        "end": "11:00",
+        "place_name": "Yanaka Ginza",
+        "category": "walk",
+        "why": "A recent thread called the morning market the calmest walk in the city.",
+        "signal_ids": ["sig-2"]
+      },
+      "target_day": 1,
+      "position": null
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "patches": [
+    {
+      "op": "replace",
+      "stop_id": "stop-01",
+      "stop": {
+        "id": "stop-01-r",
+        "day": 0,
+        "start": "12:00",
+        "end": "14:00",
+        "place_name": "Kiyosumi Teien",
+        "category": "nature",
+        "why": "A thread called the garden the calmest hour on this side of the river.",
+        "signal_ids": ["sig-1"]
+      }
+    },
+    {
+      "op": "replace",
+      "stop_id": "stop-04",
+      "stop": {
+        "id": "stop-04-r",
+        "day": 1,
+        "start": "13:00",
+        "end": "15:00",
+        "place_name": "Kiyosumi Teien",
+        "category": "nature",
+        "why": "The same garden again, because the model liked it twice.",
+        "signal_ids": ["sig-1"]
+      }
+    }
+  ]
+}

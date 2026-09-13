@@ -1,0 +1,18 @@
+{
+  "patches": [
+    {
+      "op": "replace",
+      "stop_id": "stop-01",
+      "stop": {
+        "id": "stop-01-r",
+        "day": 0,
+        "start": "12:00",
+        "end": "14:00",
+        "place_name": "Kiyosumi Teien",
+        "category": "nature",
+        "why": "A thread called the garden the calmest hour on this side of the river.",
+        "signal_ids": ["sig-1"]
+      }
+    }
+  ]
+}

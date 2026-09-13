@@ -43,6 +43,18 @@ STYLES = {
     "shopping": ":material/shopping_bag:",
     "neighbourhood walks": ":material/directions_walk:",
 }
+# Stop categories (Stop.category) and statuses, as Material Symbols ligature names, for the manifest pills.
+CATEGORY_ICONS = {
+    "food": "restaurant",
+    "sight": "photo_camera",
+    "museum": "museum",
+    "walk": "directions_walk",
+    "nightlife": "nightlife",
+    "shopping": "shopping_bag",
+    "nature": "park",
+    "rest": "hotel",
+}
+STATUS_ICONS = {"draft": "edit", "verified": "check_circle", "failed": "error"}
 BUDGET_MIN, BUDGET_MAX = 30, 600
 BUDGET_LOW_BELOW, BUDGET_HIGH_FROM = 100, 250
 BUDGET_QUESTION = "Budget per person per day"
@@ -200,31 +212,45 @@ h1, h2, h3 {{ font-family: "Bricolage Grotesque", sans-serif; letter-spacing: -0
   display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.4rem;
 }}
 .day-title small {{ font-family: "Manrope", sans-serif; font-weight: 600; font-size: 0.78rem; color: var(--muted); }}
-table.manifest {{ width: 100%; border-collapse: collapse; }}
-table.manifest td {{ vertical-align: top; padding: 0.55rem 0.6rem 0.55rem 0; border-bottom: 1px solid var(--line); }}
-table.manifest tr:last-child td {{ border-bottom: none; }}
-.stop-photo {{ width: 6.8rem; }}
+/* The manifest: one rounded card per day. Streamlit styles every markdown table (cell borders, block display),
+   so the overrides below carry !important. */
+.manifest-wrap {{ border: 1px solid var(--line); border-radius: 0.9rem; overflow: hidden; background: #fff; }}
+table.manifest {{ width: 100% !important; display: table !important; border-collapse: collapse; margin: 0 !important; }}
+table.manifest td {{
+  vertical-align: top; padding: 0.9rem 1rem !important; border: 0 !important;
+  border-bottom: 1px solid var(--line) !important;
+}}
+table.manifest tr:last-child td {{ border-bottom: 0 !important; }}
+table.manifest td.stop-photo {{ width: 7.4rem; padding-right: 0 !important; }}
 .stop-photo img, .stop-photo span {{
   width: 6.4rem; height: 4.6rem; border-radius: 0.6rem; display: block; object-fit: cover; background: var(--panel);
 }}
-.stop-time {{
+table.manifest td.stop-time {{
   font-family: "JetBrains Mono", monospace; font-size: 0.78rem; color: var(--muted); white-space: nowrap;
-  width: 6.6rem; padding-top: 0.7rem;
+  width: 7.2rem; padding-top: 1.15rem !important;
 }}
-.stop-place {{ font-weight: 700; font-size: 1rem; margin-right: 0.45rem; }}
-.stop-cat {{
-  font-size: 0.64rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
-  border: 1px solid var(--line); border-radius: 999px; padding: 0.1rem 0.5rem; margin-right: 0.4rem;
-  vertical-align: middle;
+.stop-head {{ display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }}
+.stop-place {{ font-weight: 700; font-size: 1rem; margin-right: 0.15rem; }}
+/* Pills shaped like the sidebar's st.pills: full radius, hairline border, small text, a Material icon first. */
+.pill {{
+  display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; font-weight: 500; line-height: 1;
+  padding: 0.28rem 0.7rem 0.28rem 0.55rem; border-radius: 999px; border: 1px solid rgba(49, 51, 63, 0.2);
+  color: var(--ink); background: transparent; white-space: nowrap;
 }}
-.stop-status {{
-  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 999px;
-  padding: 0.12rem 0.5rem; vertical-align: middle;
+.pill .ms {{
+  font-family: "Material Symbols Rounded"; font-weight: 400; font-style: normal; font-size: 1rem; line-height: 1;
+  letter-spacing: normal; text-transform: none; display: inline-block; font-feature-settings: "liga";
 }}
-.stop-status[data-status="verified"] {{ color: var(--ok); background: #E3F5EC; }}
-.stop-status[data-status="draft"] {{ color: var(--warn); background: #FBF0DA; }}
-.stop-status[data-status="failed"] {{ color: var(--bad); background: #FBE5E2; }}
-.stop-why {{ color: var(--muted); font-size: 0.86rem; margin: 0.25rem 0 0 0; }}
+.pill[data-status="verified"] {{
+  color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); background: #E3F5EC;
+}}
+.pill[data-status="draft"] {{
+  color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); background: #FBF0DA;
+}}
+.pill[data-status="failed"] {{
+  color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, transparent); background: #FBE5E2;
+}}
+.stop-why {{ color: var(--muted); font-size: 0.86rem; margin: 0.4rem 0 0 0; }}
 
 .stat {{ border: 1px solid var(--line); border-radius: 0.9rem; padding: 0.8rem 1rem; }}
 .stat-label {{
@@ -608,8 +634,7 @@ def itinerary_view(state: TripState) -> None:
     for day in state.itinerary.days:
         rows = []
         for stop in day.stops:
-            reason = f' title="{esc(stop.failure_reason)}"' if stop.failure_reason else ""
-            status = esc(stop.status.value)
+            status = stop.status.value
             place = state.places.get(stop.place_id) if stop.place_id else None
             photo = (
                 f'<img src="{esc(place.photo_url)}" alt="{esc(stop.place_name)}" loading="lazy">'
@@ -622,9 +647,11 @@ def itinerary_view(state: TripState) -> None:
                 f"{photo_cell}"
                 f'<td class="stop-time">{stop.start:%H:%M}–{stop.end:%H:%M}</td>'
                 "<td>"
+                '<div class="stop-head">'
                 f'<span class="stop-place">{esc(stop.place_name)}</span>'
-                f'<span class="stop-cat">{esc(stop.category)}</span>'
-                f'<span class="stop-status" data-status="{status}"{reason}>{status}</span>'
+                f"{pill(stop.category, CATEGORY_ICONS.get(stop.category, 'location_on'))}"
+                f"{pill(status, STATUS_ICONS.get(status, 'circle'), status=status, title=stop.failure_reason)}"
+                "</div>"
                 f'<p class="stop-why">{esc(stop.why)}</p>'
                 "</td>"
                 "</tr>"
@@ -632,10 +659,16 @@ def itinerary_view(state: TripState) -> None:
         st.markdown(
             '<div class="day-block">'
             f'<div class="day-title">{day.date:%A} <small>{day.date:%d %B} · {len(day.stops)} stops</small></div>'
-            f'<table class="manifest"><tbody>{"".join(rows)}</tbody></table>'
+            f'<div class="manifest-wrap"><table class="manifest"><tbody>{"".join(rows)}</tbody></table></div>'
             "</div>",
             unsafe_allow_html=True,
         )
+
+
+def pill(label: str, icon: str, status: str | None = None, title: str | None = None) -> str:
+    """A chip shaped like the sidebar's style pills: a Material Symbols ligature, then the label."""
+    attrs = (f' data-status="{esc(status)}"' if status else "") + (f' title="{esc(title)}"' if title else "")
+    return f'<span class="pill"{attrs}><span class="ms">{esc(icon)}</span>{esc(label)}</span>'
 
 
 def draft_view(state: TripState) -> None:

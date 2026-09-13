@@ -1,11 +1,14 @@
 """Lane C. Draft, refine, resolve, verify, export."""
 
+import logging
 import os
 
 from trip_core.models import ToolError
 from trip_core.tools import CalendarSink, ItineraryPlanner, PlaceResolver, Verifier
 from trip_itinerary.calendar import CalendarClient, CalendarExporter
 from trip_itinerary.credentials import GoogleTokenProvider
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 
 def maps_key() -> str:

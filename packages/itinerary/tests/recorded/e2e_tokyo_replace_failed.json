@@ -1,0 +1,18 @@
+{
+  "patches": [
+    {
+      "op": "replace",
+      "stop_id": "stop-closed",
+      "stop": {
+        "id": "stop-closed-r",
+        "day": 0,
+        "start": "19:00",
+        "end": "21:00",
+        "place_name": "Yoyogi Park",
+        "category": "nature",
+        "why": "A thread said the park still fills up on a Sunday, dancers and all.",
+        "signal_ids": ["tk-18"]
+      }
+    }
+  ]
+}
