@@ -1403,11 +1403,15 @@ name = "trip-booking"
 version = "0.1.0"
 source = { editable = "packages/booking" }
 dependencies = [
+    { name = "httpx" },
     { name = "trip-core" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "trip-core", editable = "packages/core" }]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "trip-core", editable = "packages/core" },
+]
 
 [[package]]
 name = "trip-core"
