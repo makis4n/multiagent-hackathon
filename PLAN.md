@@ -18,6 +18,24 @@ fixture run. The base owner coordinates and merges.
 
 ---
 
+## 0. Status at 13:00 PT
+
+On main and green (97 tests, CI, `make fixture`): the base, the Gemini planner (C1, by A), Google Places and
+Routes verification (C2, by A), Lane B's research (YouTube and Exa scoped to reddit.com, merged as PR #13), the
+staged UI with the questions step and the swap warnings, failure injection for the demo, evals 10/10 on real
+planner, places and verifier (`evals/results/af0f849.md`), and the brief filled to the lanes' remaining rows.
+
+In progress: Lane D flights (search working in Duffel test mode, order and gate next). Open: C3 (model-backed
+refine and replacement) and C4 (calendar). Cut: activities, Duffel Stays (needs a commercial agreement), Reddit's
+own API (policy), TikTok. Model: Gemini Flash Lite for everything; the bigger Flash models are unusable on the
+free tier today. Transit: Routes returns no transit route on our key, so travel time is a labelled driving-based
+estimate.
+
+Demo path stays Tokyo. Keys each machine needs for a full real run: `GEMINI_API_KEY`, `GOOGLE_MAPS_API_KEY`,
+`YOUTUBE_API_KEY`, `EXA_API_KEY`, `DUFFEL_API_KEY`.
+
+---
+
 ## 1. Timeline
 
 Times are PT with CEST in brackets. SGT is CEST plus 6.
@@ -223,9 +241,9 @@ Catch-up format (12:45 and 14:00), three lines per lane: done, next, blocked. Ne
 | Quality gate | ruff, pyright (basic), pytest, respx for recorded HTTP | `make check` is CI |
 | Model | google-genai SDK: Gemini Flash Lite for everything today (the bigger Flash models are overloaded or out of quota on the free tier), both through `trip_core.llm.complete_json` | one wrapper, flat JSON schemas, model names overridable in `.env` |
 | Loop | hand-rolled, about 80 lines, one function per stage | no framework unknowns in a five-hour build |
-| Research | PRAW, YouTube Data API v3 plus youtube-transcript-api, Exa or Tavily scoped to reddit.com | TikTok has no usable API; skip it |
-| Places | Google Places API (New) text search and place details with `regularOpeningHours`; Routes API `computeRoutes` transit | deterministic verification |
-| Booking | Duffel test mode (flights and stays); Viator affiliate or Amadeus Tours and Activities for activity search and deep links | real search results, sandbox orders with confirmation numbers |
+| Research | YouTube Data API v3 and Exa scoped to reddit.com (shipped); Reddit's own API written but unwired | TikTok has no usable API; Reddit's policy needs approval |
+| Places | Google Places API (New) text search and details with `regularOpeningHours`; Routes API `computeRoutes`, driving-based estimate where transit returns nothing | deterministic verification |
+| Booking | Duffel test mode, flights only (Stays needs a commercial agreement; activities cut) | real search results, sandbox orders with confirmation numbers |
 | Calendar | Google Calendar API v3, one OAuth desktop credential | 30 lines, demos well, counts as an app |
 | UI | Streamlit, one file, owned by A | zero frontend build; chat left, itinerary right, confirm modal |
 | Evals | pytest runner over `evals/trips`, results table committed per SHA | feeds the brief directly |
