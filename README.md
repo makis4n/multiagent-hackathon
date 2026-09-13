@@ -1,3 +1,6 @@
+## Video Walkthrough
+Video walkthrough of Tripia: https://drive.google.com/file/d/1gJ1Inkoi-oBfG-cm1zt1h7sw3-21aQN0/view?usp=drivesdk
+
 # Tripia
 
 Give it a destination, dates, party size, a budget band and a few style words. Tripia researches what people
@@ -92,6 +95,3 @@ make evals     # runs all ten briefs in evals/trips, writes evals/results/<sha>.
 Every test runs offline against recorded responses (respx for HTTP, a monkeypatched model call for the
 LLM-backed pieces); nothing in `make check` touches the network. `evals/results/` holds one table per commit
 that was measured against real tools, so results are always tied to a specific SHA.
-
-## Video Walkthrough
-Video walkthrough of Tripia: https://drive.google.com/file/d/1gJ1Inkoi-oBfG-cm1zt1h7sw3-21aQN0/view?usp=drivesdk
