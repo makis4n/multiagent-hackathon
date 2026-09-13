@@ -1,0 +1,18 @@
+{
+  "patches": [
+    {
+      "op": "replace",
+      "stop_id": "stop-04",
+      "stop": {
+        "id": "stop-04-r",
+        "day": 1,
+        "start": "13:00",
+        "end": "15:00",
+        "place_name": "Ameya Yokocho",
+        "category": "food",
+        "why": "A recent video called the arcade the best cheap lunch near Ueno.",
+        "signal_ids": ["sig-2"]
+      }
+    }
+  ]
+}

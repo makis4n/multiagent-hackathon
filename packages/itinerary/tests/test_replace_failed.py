@@ -269,3 +269,42 @@ def test_model_failure_returns_no_patches(monkeypatch: pytest.MonkeyPatch) -> No
     assert patches == []
     assert given.model_dump() == before
     assert planner.last_dropped == ["replace_failed: no patches: the model call raised RetryableError"]
+
+
+def test_a_stop_the_model_says_nothing_about_becomes_a_remove(monkeypatch: pytest.MonkeyPatch) -> None:
+    install(monkeypatch, "replace_failed_tokyo_silent.json")
+    planner = GeminiPlanner()
+
+    patches = planner.replace_failed(brief(), itinerary(), report("stop-01", "stop-04"), signals())
+
+    assert [patch.stop_id for patch in patches] == ["stop-01", "stop-04"]
+    assert [patch.op for patch in patches] == ["remove", "replace"]
+    assert patches[0].stop is None
+    assert planner.last_dropped == ["failed stop stop-01: the model proposed nothing, removed instead"]
+
+
+def test_two_failed_stops_do_not_share_one_replacement(monkeypatch: pytest.MonkeyPatch) -> None:
+    install(monkeypatch, "replace_failed_tokyo_same_place.json")
+    planner = GeminiPlanner()
+
+    patches = planner.replace_failed(brief(), itinerary(), report("stop-01", "stop-04"), signals())
+
+    assert [patch.op for patch in patches] == ["replace", "remove"]
+    assert [patch.stop.place_name for patch in patches if patch.stop is not None] == ["Kiyosumi Teien"]
+    assert planner.last_dropped == [
+        "failed stop stop-04: 'Kiyosumi Teien' is already in the plan or skipped, removed instead"
+    ]
+
+
+def test_one_stop_failing_two_checks_yields_one_patch(monkeypatch: pytest.MonkeyPatch) -> None:
+    install(monkeypatch, "replace_failed_tokyo_one_stop.json")
+    twice = report("stop-01")
+    twice.checks.append(Check(stop_id="stop-01", check=CheckKind.reachable, ok=False, detail="55 minutes away"))
+
+    planner = GeminiPlanner()
+
+    patches = planner.replace_failed(brief(), itinerary(), twice, signals())
+
+    assert len(patches) == 1
+    assert (patches[0].op, patches[0].stop_id) == ("replace", "stop-01")
+    assert planner.last_dropped == []

@@ -1,0 +1,22 @@
+{
+  "patches": [
+    {
+      "op": "remove",
+      "stop_id": "stop-11"
+    },
+    {
+      "op": "add",
+      "target_day": 3,
+      "stop": {
+        "id": "stop-16",
+        "day": 3,
+        "start": "16:00",
+        "end": "18:00",
+        "place_name": "Sumida Hokusai Museum",
+        "category": "museum",
+        "why": "A thread put the Hokusai museum and the river walk together in one afternoon.",
+        "signal_ids": ["tk-16"]
+      }
+    }
+  ]
+}

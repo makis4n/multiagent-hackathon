@@ -6,4 +6,4 @@
 - [x] 4. feat(itinerary): refine() returning validated patches, with the apply-on-a-copy filter, the signal-id strip and the patch cap, tests watched red first
 - [x] 5. feat(itinerary): model failure degrades to no patches instead of ending the run, with the test watched red first
 - [x] 6. feat(itinerary): replace_failed() one patch per failed stop, no reused or skipped place, with its three tests
-- [ ] 7. feat(itinerary): wire build_planner with draft delegating to FakePlanner, say so in the README table, fixture and REAL_PLANNER run green
+- [x] 7. feat(itinerary): wire build_planner with draft delegating to FakePlanner, say so in the README table, fixture and REAL_PLANNER run green
