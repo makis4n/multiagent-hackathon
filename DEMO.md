@@ -31,10 +31,10 @@ moves. The bar is at a different fill either side of the cut; nobody notices, th
 | segment | video time | screen time | what to do at the cut |
 | --- | --- | --- | --- |
 | Form and go | 0:00 to 0:10 | 10 s | |
-| First wait, shown | 0:10 to 0:26 | 16 s of 60 to 90 | finish the sentence, stop talking, keep recording |
+| First wait, shown | 0:10 to 0:26 | 16 s of 60 to 90 | talk to the dash, stop dead, keep recording |
 | Sources and draft | 0:26 to 0:50 | 24 s | |
 | Question and answer | 0:50 to 1:02 | 12 s | |
-| Second wait, shown | 1:02 to 1:22 | 20 s of 50 to 60 | same: sentence ends, silence, keep recording |
+| Second wait, shown | 1:02 to 1:22 | 20 s of 50 to 60 | same: talk to the dash, silence, keep recording |
 | Verified plan | 1:22 to 1:38 | 16 s | |
 | Book the flight | 1:38 to 1:52 | 14 s | |
 | Close | 1:52 to 2:00 | 8 s | |
@@ -46,60 +46,63 @@ Rehearse once right before the take so you know today's numbers and which stop t
 
 ## The take
 
+Two minutes of talking, no dead air. The word counts fit each slot at an easy pace, about 140 words a minute.
+At the two cuts, stop at the full stop marked with a dash, keep recording in silence, and pick up the next
+sentence once the result is on screen.
+
 **0:00, the form.** Look at the form, then click Plan trip. Ten seconds.
 
-> Five days in Tokyo in November, two of us, we like food and art, and I don't want to spend a week on Reddit
-> working out where to go. So I tell Tripia that, and I press go.
+> Five days in Tokyo in November, two of us, we like food and art, and I don't want to spend a week on
+> Reddit working out where to go. So I tell Tripia that, and I press go.
 
-**0:10, the loading bar.** Sixteen seconds on screen. Let one tip land, then talk. Finish the line, go quiet,
-and let it run; the cut comes here.
+**0:10, the loading bar.** Sixteen seconds on screen. Start talking as the bar appears.
 
-> So right now it's reading. About a hundred posts from the last few weeks. YouTube vlogs, Reddit threads,
-> every one of them dated. Not a guidebook. What people are actually saying this month.
+> So right now it's out reading. About a hundred posts from the last few weeks. YouTube vlogs, Reddit threads,
+> every one with a date on it. Not a guidebook from three years ago. What people are saying this month. —
 
 **0:26, the draft.** Point at the source list in the sidebar, then scroll the draft slowly, once. Twenty-four
 seconds.
 
-> There's what it read, each with a date. And here's the first draft. Four stops a day, and every stop says
-> which post it came from, so you can go and check. Nothing is verified yet, and it's honest about that, they're
-> all marked draft.
+> There it is. Down the side, everything it read, each with a source and a date. And here's the first draft.
+> Four stops a day, and every stop tells you which post it came from, so you can click through and read it
+> yourself. Nothing's verified yet, and it's honest about that. They're all marked draft.
 
 **0:50, the question.** Read the skip question aloud. Type `skip:` and a place name copied exactly from the first
 day. Leave the rest blank. Click Check and finish the plan. Twelve seconds.
 
-> Instead of guessing what I meant, it asks. Skip this one, I've been. And that turns into an edit to the plan
-> I'm already looking at. Not a new plan.
+> Instead of guessing what I meant, it asks. Anything to skip? Yeah, this one, I've been. And that becomes an
+> edit to the plan I'm already looking at. It doesn't start over.
 
-**1:02, the second loading bar.** Twenty seconds on screen. This is the part that matters, so slow down. Finish
-the line, go quiet; the second cut comes here.
+**1:02, the second loading bar.** Twenty seconds on screen. This is the part that matters, so slow down.
 
-> Now the boring part nobody does. Every stop goes to Google. Does the place exist. Is it open at that hour,
-> on that day of the week. Can you get there from the one before. Twenty stops, a few hundred checks.
+> Now the boring part, the part nobody actually does. Every stop goes off to Google. Does the place exist. Is
+> it open at that hour, on that day of the week. Can you get there from the stop before it. Twenty stops, a
+> few hundred checks, all of them. —
 
 **1:22, the verified plan.** The photo banner, the 100% tile, the swaps beside it. Point at one swap. Sixteen
 seconds.
 
-> Done. This one's closed on Mondays, so it swapped it, and it tells me why. Everything left is verified, all of
-> it, and now the stops have faces.
+> Done. And look, this one's closed on Mondays, so it swapped it for somewhere nearby and tells me why, right
+> there. Everything left is verified, all of it, and the stops have faces now.
 
 **1:38, book the flight.** Scroll to Book, click Book on the first flight, the reference appears. Fourteen
 seconds.
 
-> Flights go through Duffel, in test mode, and nothing is booked until I click. Here's the bit I like. That call
-> failed halfway, on purpose, and it retried. Still one booking. Every order carries a key, so a retry can never
-> buy the same flight twice.
+> Flights go through Duffel, test mode, and nothing gets booked until I click. Here's the bit I like. That call
+> just failed halfway, on purpose, and it retried. Still one booking. Every order carries a key, so a retry
+> can never buy the same flight twice.
 
 **1:52, close.** Scroll back to the top of the plan and stop on it. Eight seconds.
 
-> Ten test trips run through this same loop and pass every check. That's the trip. Researched, checked, booked,
-> with receipts.
+> Ten test trips run through this same loop and pass every check. So that's the trip. Researched, checked,
+> booked, with receipts.
 
 ## Notes for the speaker
 
 - Say "Tripia" once, at the start. After that it's "it".
 - Never read the screen aloud. Say what it means.
-- The two waits are where people lose the room. Say the line, then go quiet and let the cut do its job. The
-  tip lines on the bar are written to be read, so a moment of silence on them is fine.
+- The two waits are where people lose the room. Keep talking to the dash, then stop dead. The silence after
+  it is what gets cut; the tip lines on the bar carry the screen while you wait for the result.
 - If a swap did not happen this run, the line at 1:22 becomes: "Every stop passed first time, and it says so.
   On a busy day it swaps the closed ones and tells you why."
 - The "Open calendar" button goes to a fake page. Do not click it on camera.
