@@ -28,6 +28,54 @@ from trip_agent.registry import active_flags, build_tools, inject_booking_failur
 from trip_core.models import BudgetBand, TripBrief, TripState
 
 STYLES = ["food", "art", "museums", "nightlife", "nature", "family", "shopping", "neighbourhood walks"]
+DESTINATIONS = [
+    "Amsterdam (AMS)",
+    "Bali (DPS)",
+    "Bangkok (BKK)",
+    "Barcelona (BCN)",
+    "Berlin (BER)",
+    "Copenhagen (CPH)",
+    "Dubai (DXB)",
+    "Hong Kong (HKG)",
+    "Istanbul (IST)",
+    "Kyoto (OSA)",
+    "Lisbon (LIS)",
+    "London (LON)",
+    "Los Angeles (LAX)",
+    "Mexico City (MEX)",
+    "New York (NYC)",
+    "Paris (PAR)",
+    "Prague (PRG)",
+    "Rome (ROM)",
+    "Seoul (SEL)",
+    "Singapore (SIN)",
+    "Sydney (SYD)",
+    "Taipei (TPE)",
+    "Tokyo (TYO)",
+    "Vienna (VIE)",
+]
+ORIGINS = [
+    "Amsterdam Schiphol (AMS)",
+    "Bangkok Suvarnabhumi (BKK)",
+    "Copenhagen (CPH)",
+    "Dubai (DXB)",
+    "Frankfurt (FRA)",
+    "Gothenburg Landvetter (GOT)",
+    "Helsinki Vantaa (HEL)",
+    "Hong Kong (HKG)",
+    "London Heathrow (LHR)",
+    "Los Angeles (LAX)",
+    "New York JFK (JFK)",
+    "Oslo Gardermoen (OSL)",
+    "Paris Charles de Gaulle (CDG)",
+    "San Francisco (SFO)",
+    "Seoul Incheon (ICN)",
+    "Singapore Changi (SIN)",
+    "Stockholm Arlanda (ARN)",
+    "Sydney (SYD)",
+    "Tokyo Haneda (HND)",
+    "Tokyo Narita (NRT)",
+]
 
 FONT_LINK = (
     "https://fonts.googleapis.com/css2?"
@@ -288,6 +336,16 @@ def trip_strip(state: TripState) -> None:
     st.markdown(f'<div class="trip-strip">{body}</div>', unsafe_allow_html=True)
 
 
+def split_code(pick: str) -> tuple[str, str]:
+    """ "Tokyo (TYO)" -> ("Tokyo", "TYO"); a bare "TYO" -> ("TYO", "TYO"); anything else -> ("", "")."""
+    match = re.fullmatch(r"\s*(.+?)\s*\(([A-Za-z]{3})\)\s*", pick)
+    if match:
+        return match.group(1), match.group(2).upper()
+    if re.fullmatch(r"\s*[A-Za-z]{3}\s*", pick):
+        return pick.strip().upper(), pick.strip().upper()
+    return "", ""
+
+
 def esc(value: object) -> str:
     return html.escape(str(value))
 
@@ -304,17 +362,31 @@ def log_for(state: TripState) -> CallLog:
 def brief_form(tools: Tools) -> None:
     st.subheader("Where to?")
     with st.form("brief"):
-        destination = st.text_input("Destination", "Tokyo")
-        origin = st.text_input("Flying from (airport code)", "ARN")
-        destination_code = st.text_input(
-            "Destination airport code", "TYO", help="IATA code Duffel searches, e.g. TYO, LIS, NYC"
+        destination_pick = st.selectbox(
+            "Destination",
+            DESTINATIONS,
+            index=DESTINATIONS.index("Tokyo (TYO)"),
+            accept_new_options=True,
+            help="Type to search. Not listed? Type it as City (IATA code), e.g. Porto (OPO).",
+        )
+        origin_pick = st.selectbox(
+            "Flying from",
+            ORIGINS,
+            index=ORIGINS.index("Stockholm Arlanda (ARN)"),
+            accept_new_options=True,
+            help="Type to search. Not listed? Type it as Airport (IATA code).",
         )
         start = st.date_input("Start", dt.date(2026, 11, 12))
         end = st.date_input("End", dt.date(2026, 11, 16))
         travellers = st.number_input("Travellers", min_value=1, max_value=8, value=2)
-        budget = st.selectbox("Budget", [band.value for band in BudgetBand], index=1)
+        budget = st.select_slider("Budget", [band.value for band in BudgetBand], value=BudgetBand.mid.value)
         styles = st.multiselect("Styles", STYLES, ["food", "art"])
         submitted = st.form_submit_button("Plan trip")
+    destination, destination_code = split_code(destination_pick or "")
+    _, origin = split_code(origin_pick or "")
+    if submitted and not (destination and destination_code and origin):
+        st.error("Pick a destination and a departure airport, or type them as City (CODE).")
+        submitted = False
     if submitted and isinstance(start, dt.date) and isinstance(end, dt.date):
         brief = TripBrief(
             id=f"ui-{re.sub(r'[^a-z0-9]+', '-', destination.lower())}-{start:%Y%m%d}",
