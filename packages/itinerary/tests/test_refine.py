@@ -7,7 +7,17 @@ import pytest
 from pydantic import BaseModel
 
 from trip_core import llm
-from trip_core.models import BudgetBand, Day, Itinerary, ItineraryPatch, Signal, SignalSource, Stop, TripBrief
+from trip_core.models import (
+    BudgetBand,
+    Day,
+    Itinerary,
+    ItineraryPatch,
+    RetryableError,
+    Signal,
+    SignalSource,
+    Stop,
+    TripBrief,
+)
 from trip_itinerary.planner import MAX_PATCHES, GeminiPlanner, build_refine_prompt
 from trip_itinerary.schemas import PatchesResponse
 
@@ -147,7 +157,8 @@ def test_drops_a_patch_that_does_not_apply(monkeypatch: pytest.MonkeyPatch) -> N
     assert patches[1].stop is not None and patches[1].stop.id == "stop-03"
     assert len(planner.last_dropped) == 2
     assert any("stop-00" in line for line in planner.last_dropped)
-    assert any("9" in line for line in planner.last_dropped)
+    assert any("does not apply: no day 9" in line for line in planner.last_dropped)
+    assert all(line.startswith("candidate patch ") for line in planner.last_dropped)
 
 
 def test_strips_invented_signal_ids(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -193,3 +204,55 @@ def test_the_prompt_is_readable_without_a_model() -> None:
     assert "End by 22:00." in prompt
     assert "Cheap nights in Shibuya" in prompt
     assert "—" not in prompt
+
+
+class Raiser:
+    """Stands in for complete_json and fails the way the provider fails."""
+
+    def __init__(self, error: Exception) -> None:
+        self.error = error
+        self.calls = 0
+
+    def __call__(self, prompt: str, schema: type[BaseModel], **kwargs: Any) -> BaseModel:
+        self.calls += 1
+        raise self.error
+
+
+def test_model_failure_returns_no_patches(monkeypatch: pytest.MonkeyPatch) -> None:
+    raiser = Raiser(RetryableError("gemini 429: rate limited"))
+    monkeypatch.setattr(llm, "complete_json", raiser)
+    planner = GeminiPlanner()
+    given = itinerary()
+    before = given.model_dump()
+
+    patches = planner.refine(brief(), given, ANSWERS, signals())
+
+    assert raiser.calls == 1
+    assert patches == []
+    assert given.model_dump() == before
+    assert any("RetryableError" in line for line in planner.last_dropped)
+    assert any("no patches" in line for line in planner.last_dropped)
+
+
+def test_model_output_that_does_not_validate_returns_no_patches(monkeypatch: pytest.MonkeyPatch) -> None:
+    def invalid(prompt: str, schema: type[BaseModel], **kwargs: Any) -> BaseModel:
+        return PatchesResponse.model_validate({"patches": [{"op": 5}]})
+
+    monkeypatch.setattr(llm, "complete_json", invalid)
+    planner = GeminiPlanner()
+
+    patches = planner.refine(brief(), itinerary(), ANSWERS, signals())
+
+    assert patches == []
+    assert any("ValidationError" in line for line in planner.last_dropped)
+
+
+def test_a_mapping_drop_is_recorded(monkeypatch: pytest.MonkeyPatch) -> None:
+    install(monkeypatch, "refine_tokyo_unknown_op.json")
+    planner = GeminiPlanner()
+
+    patches = planner.refine(brief(), itinerary(), ANSWERS, signals())
+
+    assert [patch.op for patch in patches] == ["remove"]
+    assert any("unknown op" in line and "'delete'" in line for line in planner.last_dropped)
+    assert all(line.startswith("model patch ") for line in planner.last_dropped)

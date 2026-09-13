@@ -7,7 +7,7 @@ import pytest
 from pydantic import BaseModel
 
 from trip_core import llm
-from trip_core.models import MAX_QUESTIONS, BudgetBand, Day, Itinerary, Stop, TripBrief
+from trip_core.models import MAX_QUESTIONS, BudgetBand, Day, Itinerary, Stop, ToolError, TripBrief
 from trip_itinerary.planner import GeminiPlanner, build_questions_prompt
 from trip_itinerary.schemas import QuestionsResponse
 
@@ -131,3 +131,35 @@ def test_the_prompt_is_readable_without_a_model() -> None:
     assert "food, art" in prompt
     assert "stop-00 09:00 to 11:00 Tsukiji Outer Market" in prompt
     assert "—" not in prompt
+
+
+def test_model_failure_returns_no_questions(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = 0
+
+    def raiser(prompt: str, schema: type[BaseModel], **kwargs: Any) -> BaseModel:
+        nonlocal calls
+        calls += 1
+        raise ToolError("gemini 400: bad request")
+
+    monkeypatch.setattr(llm, "complete_json", raiser)
+    planner = GeminiPlanner()
+
+    asked = planner.questions(brief(), itinerary())
+
+    assert calls == 1
+    assert asked == []
+    assert any("ToolError" in line for line in planner.last_dropped)
+    assert any("no questions" in line for line in planner.last_dropped)
+
+
+def test_model_output_that_does_not_validate_returns_no_questions(monkeypatch: pytest.MonkeyPatch) -> None:
+    def invalid(prompt: str, schema: type[BaseModel], **kwargs: Any) -> BaseModel:
+        return QuestionsResponse.model_validate({"questions": [1]})
+
+    monkeypatch.setattr(llm, "complete_json", invalid)
+    planner = GeminiPlanner()
+
+    asked = planner.questions(brief(), itinerary())
+
+    assert asked == []
+    assert any("ValidationError" in line for line in planner.last_dropped)

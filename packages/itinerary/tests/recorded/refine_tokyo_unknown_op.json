@@ -1,0 +1,12 @@
+{
+  "patches": [
+    {
+      "op": "delete",
+      "stop_id": "stop-01"
+    },
+    {
+      "op": "remove",
+      "stop_id": "stop-00"
+    }
+  ]
+}

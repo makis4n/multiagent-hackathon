@@ -6,11 +6,27 @@ every filter lives here in code, after the call: the prompt asks, the code decid
 
 from __future__ import annotations
 
+import logging
+
+from pydantic import ValidationError
+
 from trip_core import llm
-from trip_core.models import MAX_QUESTIONS, Itinerary, ItineraryPatch, Signal, TripBrief, apply_patch
+from trip_core.models import (
+    MAX_QUESTIONS,
+    Itinerary,
+    ItineraryPatch,
+    RetryableError,
+    Signal,
+    ToolError,
+    TripBrief,
+    apply_patch,
+)
 from trip_itinerary.schemas import PatchesResponse, QuestionsResponse, to_patches
 
+log = logging.getLogger(__name__)
+
 MAX_PATCHES = 8
+MODEL_FAILURES = (RetryableError, ToolError, ValidationError)
 
 QUESTIONS_SYSTEM = (
     "You help a travel planner close the gaps in one specific trip plan. "
@@ -158,14 +174,20 @@ class GeminiPlanner:
         self.last_dropped: list[str] = []
 
     def questions(self, brief: TripBrief, itinerary: Itinerary) -> list[str]:
-        """At most MAX_QUESTIONS, none of them already answered in the brief."""
-        response = llm.complete_json(
-            build_questions_prompt(brief, itinerary),
-            QuestionsResponse,
-            model=llm.model_fast(),
-            system=QUESTIONS_SYSTEM,
-            temperature=self.temperature,
-        )
+        """At most MAX_QUESTIONS, none of them already answered in the brief. A model failure asks nothing."""
+        self.last_dropped = []
+        try:
+            response = llm.complete_json(
+                build_questions_prompt(brief, itinerary),
+                QuestionsResponse,
+                model=llm.model_fast(),
+                system=QUESTIONS_SYSTEM,
+                temperature=self.temperature,
+            )
+        except MODEL_FAILURES as error:
+            log.exception("questions: the model call failed")
+            self.last_dropped.append(f"questions: no questions: the model call raised {type(error).__name__}")
+            return []
         return self._select(response.questions, brief)
 
     @staticmethod
@@ -186,15 +208,23 @@ class GeminiPlanner:
     def refine(
         self, brief: TripBrief, itinerary: Itinerary, answers: dict[str, str], signals: list[Signal]
     ) -> list[ItineraryPatch]:
-        """Patches only, every one of them applicable, at most MAX_PATCHES. Drops are recorded, never raised."""
+        """Patches only, every one of them applicable, at most MAX_PATCHES. Drops are recorded, never raised.
+
+        A model failure degrades to no patches, so the traveller keeps the itinerary they were already looking at.
+        """
         self.last_dropped = []
-        response = llm.complete_json(
-            build_refine_prompt(brief, itinerary, answers, signals),
-            PatchesResponse,
-            model=llm.model_main(),
-            system=REFINE_SYSTEM,
-            temperature=self.temperature,
-        )
+        try:
+            response = llm.complete_json(
+                build_refine_prompt(brief, itinerary, answers, signals),
+                PatchesResponse,
+                model=llm.model_main(),
+                system=REFINE_SYSTEM,
+                temperature=self.temperature,
+            )
+        except MODEL_FAILURES as error:
+            log.exception("refine: the model call failed")
+            self.last_dropped.append(f"refine: no patches: the model call raised {type(error).__name__}")
+            return []
         mapped = to_patches(response, itinerary, [signal.id for signal in signals])
         self.last_dropped.extend(mapped.dropped)
         return self._applicable(itinerary, mapped.patches)
@@ -208,12 +238,12 @@ class GeminiPlanner:
         state = itinerary
         for index, patch in enumerate(candidates):
             if len(kept) == MAX_PATCHES:
-                self.last_dropped.append(f"patch {index}: over the cap of {MAX_PATCHES} patches a round")
+                self.last_dropped.append(f"candidate patch {index}: over the cap of {MAX_PATCHES} patches a round")
                 continue
             try:
                 state = apply_patch(state, patch)
             except (KeyError, ValueError) as error:
-                self.last_dropped.append(f"patch {index}: does not apply: {error}")
+                self.last_dropped.append(f"candidate patch {index}: does not apply: {error}")
                 continue
             kept.append(patch)
         return kept

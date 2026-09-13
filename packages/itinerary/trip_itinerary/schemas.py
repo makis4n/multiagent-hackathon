@@ -56,7 +56,11 @@ class PatchesResponse(BaseModel):
 
 @dataclass(frozen=True)
 class MappingResult:
-    """The patches that had a usable shape, and one line per patch that did not."""
+    """The patches that had a usable shape, and one line per patch that did not.
+
+    Drop lines say `model patch <n>`, numbering into the model's own response, so they never read the same as a
+    later drop numbering into this list.
+    """
 
     patches: list[ItineraryPatch] = field(default_factory=list)
     dropped: list[str] = field(default_factory=list)
@@ -83,7 +87,7 @@ def to_patches(response: PatchesResponse, itinerary: Itinerary, signal_ids: Iter
         try:
             patches.append(_one(flat, allowed, known_stop_ids))
         except ValueError as error:
-            dropped.append(f"patch {index}: {error}")
+            dropped.append(f"model patch {index}: {error}")
     return MappingResult(patches=patches, dropped=dropped)
 
 
