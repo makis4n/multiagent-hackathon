@@ -126,6 +126,18 @@ def stage_verify(state: TripState, tools: Tools, log: CallLog) -> TripState:
     return state
 
 
+def stage_search(
+    state: TripState, tools: Tools, log: CallLog, kinds: Sequence[BookingKind] = DEFAULT_BOOKINGS
+) -> TripState:
+    """Searches every kind and records the options. Orders nothing."""
+    for kind in kinds:
+        options = log.call(f"booking.search.{kind}", tools.booking.search, state.brief, kind)
+        state.options.extend(options)
+        if not options:
+            state.errors.append(f"no {kind} options")
+    return state
+
+
 def stage_book(
     state: TripState,
     tools: Tools,
@@ -134,14 +146,13 @@ def stage_book(
     confirm: Confirm,
     kinds: Sequence[BookingKind] = DEFAULT_BOOKINGS,
 ) -> TripState:
-    """Searches every kind; orders only what `confirm` approves, under an idempotency key, with one retry."""
+    """Searches when nothing was searched yet; orders only what `confirm` approves, under an idempotency key."""
+    if not state.options:
+        stage_search(state, tools, log, kinds)
     for kind in kinds:
-        options = log.call(f"booking.search.{kind}", tools.booking.search, state.brief, kind)
-        state.options.extend(options)
-        if not options:
-            state.errors.append(f"no {kind} options")
+        chosen = next((option for option in state.options if option.kind == kind), None)
+        if chosen is None:
             continue
-        chosen = options[0]
         confirmed_at = confirm(chosen)
         if confirmed_at is None:
             state.errors.append(f"{kind} not confirmed by the user; nothing ordered")

@@ -20,6 +20,7 @@ from trip_agent.loop import (
     stage_draft,
     stage_refine,
     stage_research,
+    stage_search,
     stage_verify,
 )
 from trip_agent.registry import active_flags, build_tools
@@ -110,8 +111,8 @@ def questions_form(state: TripState, tools: Tools) -> None:
     if go:
         with st.status("Refining and verifying every stop", expanded=False) as status:
             state = stage_verify(stage_refine(state, tools, log_for(state), answers), tools, log_for(state))
-            state = stage_calendar(state, tools, log_for(state))
-            status.update(label="Verified.", state="complete")
+            state = stage_calendar(stage_search(state, tools, log_for(state)), tools, log_for(state))
+            status.update(label="Verified. Bookings wait for your click.", state="complete")
         st.session_state["state"] = state
         st.rerun()
 
