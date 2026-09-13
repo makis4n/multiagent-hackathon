@@ -29,10 +29,19 @@ from trip_agent.loop import (
     stage_search,
     stage_verify,
 )
-from trip_agent.registry import active_flags, build_tools, inject_booking_failure
+from trip_agent.registry import build_tools
 from trip_core.models import BudgetBand, Signal, TripBrief, TripState
 
-STYLES = ["food", "art", "museums", "nightlife", "nature", "family", "shopping", "neighbourhood walks"]
+STYLES = {
+    "food": "🍜",
+    "art": "🎨",
+    "museums": "🏛️",
+    "nightlife": "🌃",
+    "nature": "🌿",
+    "family": "🧸",
+    "shopping": "🛍️",
+    "neighbourhood walks": "🚶",
+}
 BUDGET_MIN, BUDGET_MAX = 30, 600
 BUDGET_LOW_BELOW, BUDGET_HIGH_FROM = 100, 250
 BUDGET_QUESTION = "Budget per person per day"
@@ -149,18 +158,6 @@ h1, h2, h3 {{ font-family: "Bricolage Grotesque", sans-serif; letter-spacing: -0
   color: var(--muted);
 }}
 .trip-cell-value {{ font-weight: 700; font-variant-numeric: tabular-nums; }}
-
-.tool-row {{ display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.6rem 0 0.4rem 0; }}
-.tool-tag {{
-  font-size: 0.66rem; font-weight: 600; padding: 0.15rem 0.55rem; border-radius: 999px; border: 1px solid var(--line);
-  color: var(--muted);
-}}
-.tool-tag[data-on="1"] {{
-  color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); background: #E3F5EC;
-}}
-.tool-tag[data-on="fail"] {{
-  color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, transparent); background: #FBE5E2;
-}}
 
 .src-list {{ display: flex; flex-direction: column; gap: 0.15rem; }}
 .src {{
@@ -497,7 +494,13 @@ def brief_form(tools: Tools, slot: DeltaGenerator) -> None:
             step=10,
             help="Food, tickets and getting around, flights aside. Under 100 reads as low, over 250 as high.",
         )
-        styles = st.multiselect("Styles", STYLES, ["food", "art"])
+        styles = st.pills(
+            "Styles",
+            list(STYLES),
+            selection_mode="multi",
+            default=["food", "art"],
+            format_func=lambda style: f"{STYLES[style]} {style}",
+        )
         submitted = st.form_submit_button("Plan trip", type="primary", width="stretch")
     destination, destination_code = split_code(destination_pick or "")
     _, origin = split_code(origin_pick or "")
@@ -514,7 +517,7 @@ def brief_form(tools: Tools, slot: DeltaGenerator) -> None:
             end_date=end,
             travellers=int(travellers),
             budget_band=budget_band(int(budget)),
-            styles=styles,
+            styles=list(styles),
             answers={BUDGET_QUESTION: f"about {int(budget)} EUR per person per day, flights aside"},
         )
         state = TripState(brief=brief)
@@ -524,17 +527,6 @@ def brief_form(tools: Tools, slot: DeltaGenerator) -> None:
         slot.empty()
         st.session_state["state"] = state
         st.rerun()
-    tools_status()
-
-
-def tools_status() -> None:
-    chips = "".join(
-        f'<span class="tool-tag" data-on="{"1" if on else "0"}">{esc(name.lower())}</span>'
-        for name, on in active_flags().items()
-    )
-    if inject_booking_failure():
-        chips += '<span class="tool-tag" data-on="fail">failure injected</span>'
-    st.markdown(f'<div class="tool-row">{chips}</div>', unsafe_allow_html=True)
 
 
 def questions_form(state: TripState, tools: Tools, slot: DeltaGenerator) -> None:
