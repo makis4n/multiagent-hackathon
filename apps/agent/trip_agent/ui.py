@@ -35,7 +35,9 @@ def main() -> None:
             travellers = st.number_input("Travellers", min_value=1, max_value=8, value=2)
             budget = st.selectbox("Budget", [band.value for band in BudgetBand], index=1)
             styles = st.multiselect("Styles", STYLES, ["food", "art"])
-            skip = st.text_input("Anything to skip?", placeholder="skip: Shibuya Sky")
+            skip = st.text_input(
+                "Anything to skip?", value="skip: Shibuya Sky", help="Answers shaped skip: <place> become a patch"
+            )
             submitted = st.form_submit_button("Plan trip")
         if submitted and isinstance(start, dt.date) and isinstance(end, dt.date):
             brief = TripBrief(
@@ -87,9 +89,9 @@ def main() -> None:
             )
         st.subheader("Book")
         for option in state.options:
-            text, action = st.columns([3, 1])
+            text, action = st.columns([4, 1])
             text.write(f"{option.title} · {option.price_minor / 100:.0f} {option.currency}")
-            if action.button("Confirm and book", key=option.provider_ref):
+            if action.button("Book", key=option.provider_ref, width="stretch"):
                 key = idempotency_key(state.brief.id, option)
                 order = tools.booking.order(option, key, dt.datetime.now(dt.UTC))
                 if order.idempotency_key not in {existing.idempotency_key for existing in state.orders}:
