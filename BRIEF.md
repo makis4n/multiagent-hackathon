@@ -37,7 +37,7 @@ Each row names a test that plants the failure. A row without a test is a claim, 
 | planner.draft | venue closed at the planned time | `open` check | replacement pass | `test_fixture_runs_end_to_end` |
 | planner.draft | stops too far apart | `reachable` check, 45 min cap | replacement pass | <C> |
 | research.* | source down or rate limited | `RetryableError` | other sources still run; draft proceeds with fewer signals | <B> |
-| gemini | 429/5xx | `RetryableError` from `complete_json` | <retry policy> | <C> |
+| gemini | 429/5xx, model overloaded | `RetryableError` inside `complete_json` | three attempts, 2s/4s backoff, then the stage fails loudly | `test_retries_a_busy_model_then_succeeds` |
 | gemini | malformed JSON | `ToolError` | <fallback> | <C> |
 
 ## 4. Eval results

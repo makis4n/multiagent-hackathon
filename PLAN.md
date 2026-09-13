@@ -221,7 +221,7 @@ Catch-up format (12:45 and 14:00), three lines per lane: done, next, blocked. Ne
 |---|---|---|
 | Language | Python 3.13 (3.12 works), uv workspace, pydantic v2 | one toolchain, every API here has a Python SDK, evals are pytest |
 | Quality gate | ruff, pyright (basic), pytest, respx for recorded HTTP | `make check` is CI |
-| Model | google-genai SDK: Gemini 2.5 Pro for drafting and refinement, Gemini 2.5 Flash for scoring and extraction, both through `trip_core.llm.complete_json` | one wrapper, flat JSON schemas, model names overridable in `.env` |
+| Model | google-genai SDK: Gemini Flash (latest alias) for drafting and refinement, Flash Lite for scoring and extraction, both through `trip_core.llm.complete_json` | one wrapper, flat JSON schemas, model names overridable in `.env` |
 | Loop | hand-rolled, about 80 lines, one function per stage | no framework unknowns in a five-hour build |
 | Research | PRAW, YouTube Data API v3 plus youtube-transcript-api, Exa or Tavily scoped to reddit.com | TikTok has no usable API; skip it |
 | Places | Google Places API (New) text search and place details with `regularOpeningHours`; Routes API `computeRoutes` transit | deterministic verification |
