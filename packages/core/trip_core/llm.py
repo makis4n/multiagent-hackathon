@@ -1,7 +1,8 @@
 """The one place that talks to Gemini. Typed in, typed out.
 
-Defaults are the `-latest` aliases: the dated 2.5 names are refused for new keys and the Pro models need paid
-quota. Override with GEMINI_MODEL_MAIN and GEMINI_MODEL_FAST in .env.
+Both defaults are Flash Lite: on the free tier it answered a full draft in 4s, while gemini-flash-latest returned
+503 "high demand" on every long request and the newer Flash models ran out of quota. The dated 2.5 names are
+refused for new keys and Pro needs paid quota. Override with GEMINI_MODEL_MAIN and GEMINI_MODEL_FAST in .env.
 
 Keep response schemas flat: pydantic models built from str, int, float, bool, lists and nested models, with
 `X | None` as the only union. No dicts. Gemini's JSON schema support rejects the rest.
@@ -18,10 +19,10 @@ from pydantic import BaseModel, ValidationError
 
 from trip_core.models import RetryableError, ToolError
 
-DEFAULT_MAIN = "gemini-flash-latest"
+DEFAULT_MAIN = "gemini-flash-lite-latest"
 DEFAULT_FAST = "gemini-flash-lite-latest"
 RETRYABLE_CODES = {408, 429, 500, 502, 503, 504}
-BACKOFF_SECONDS = 2.0
+BACKOFF_SECONDS = 3.0
 
 _client: genai.Client | None = None
 
@@ -51,7 +52,7 @@ def complete_json[T: BaseModel](
     model: str | None = None,
     system: str | None = None,
     temperature: float = 0.2,
-    attempts: int = 3,
+    attempts: int = 4,
 ) -> T:
     """One structured call: short backoff on 429 and 5xx, one corrective retry when the answer does not
     match the schema. RetryableError once `attempts` are spent, ToolError on anything a retry will not fix."""

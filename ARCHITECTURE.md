@@ -39,7 +39,7 @@ and the tests in `packages/core/tests/test_fakes.py` prove them.
 ## Model
 
 Gemini through `trip_core.llm.complete_json(prompt, Schema)`: JSON mode with a flat pydantic response schema.
-`GEMINI_MODEL_MAIN` (default gemini-flash-latest) for drafting and refinement, `GEMINI_MODEL_FAST` (default
+`GEMINI_MODEL_MAIN` (default gemini-flash-lite-latest) for drafting and refinement, `GEMINI_MODEL_FAST` (default
 gemini-flash-lite-latest) for scoring and extraction. Transport and rate-limit failures surface as `RetryableError`.
 
 ## Evals

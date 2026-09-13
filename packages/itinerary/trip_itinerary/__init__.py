@@ -10,7 +10,9 @@ def build_resolver() -> PlaceResolver:
 
 def build_planner() -> ItineraryPlanner:
     """Gemini behind it, through trip_core.llm. Selected by REAL_PLANNER=1."""
-    raise NotImplementedError("Lane C: implement trip_itinerary.build_planner()")
+    from trip_itinerary.planner import GeminiPlanner
+
+    return GeminiPlanner()
 
 
 def build_verifier(resolver: PlaceResolver) -> Verifier:

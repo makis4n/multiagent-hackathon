@@ -1,6 +1,6 @@
 # trip-itinerary
 
-Status: **unclaimed**. Claim it by putting your name on this line in your first commit.
+Status: **C1 (planner) Wai Kin**; C2, C3, C4 unclaimed. See `PLAN.md` here.
 
 Lane C. Four factories in `trip_itinerary/__init__.py`, each behind its own flag:
 
