@@ -252,7 +252,7 @@ Checks reported per trip in `evals/results/<sha>.md`:
 | resolved | every stop resolves to a Google place_id | C |
 | verified | at least 90 percent of stops pass exists, open, reachable, in_window | C |
 | transit | 45 min or less between consecutive stops | C |
-| bookable | at least one flight option and one stay option returned | D |
+| bookable | at least one flight option returned (stays: no Duffel Stays access, fake only) | D |
 | gated | zero orders without `confirmed_by_user_at`; injected 500 yields exactly one order | D |
 | loop | the full run completes with no unhandled exception, call log complete | A |
 

@@ -36,12 +36,11 @@ Reload the page once so the caption reads the real tools you expect plus "bookin
 | 0:35 | The draft, day by day, status draft. | "First draft. Every stop cites the post it came from. Nothing is checked yet." |
 | 0:50 | The questions. Leave "skip: Shibuya Sky", answer one more. Click Check and finish. | "It asks a few things instead of guessing. Answers become edits, never a rewrite." |
 | 1:05 | The warning: a venue closed at that hour, swapped. Verified 100%. | "Every stop is checked against Google: does it exist, is it open then, can you get there in time. This one was closed, so it swapped it." |
-| 1:25 | Book. Click Book on the flight. The order appears. | "Flights and stays through Duffel, in test mode. Nothing is booked until I click." |
-| 1:40 | Click Book on the stay. The order appears once. | "That call failed at the provider and retried. One booking, not two: every order carries an idempotency key." |
+| 1:25 | Book. Click Book on the flight. The order appears once. | "Flights through Duffel, in test mode. Nothing is booked until I click. That call failed at the provider and retried: one booking, not two, because every order carries an idempotency key." |
+| 1:40 | The order line on screen, with its Duffel reference. | "Stays would go the same way; Duffel Stays needs a commercial agreement, so today it's flights." |
 | 1:52 | Open calendar. | "And it's in the calendar." |
 
-The injected failure hits the first order call of the session, so the flight click is the retry beat if the
-stay was not booked first. Say the retry line on whichever click comes first.
+The injected failure hits the first order call of the session, which is the flight click.
 
 ## If something breaks mid-take
 

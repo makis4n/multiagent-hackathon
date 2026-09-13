@@ -74,8 +74,9 @@ def check_transit(state: TripState) -> Verdict:
 
 
 def check_bookable(state: TripState) -> Verdict:
+    """Flights only: Duffel Stays needs a commercial agreement, so stays exist on the fake provider alone."""
     kinds = {option.kind for option in state.options}
-    return {BookingKind.flight, BookingKind.stay} <= kinds, ", ".join(sorted(kind.value for kind in kinds)) or "none"
+    return BookingKind.flight in kinds, ", ".join(sorted(kind.value for kind in kinds)) or "none"
 
 
 def check_gated(state: TripState) -> Verdict:

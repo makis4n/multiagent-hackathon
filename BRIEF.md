@@ -21,7 +21,7 @@ confirmation) → calendar. See `ARCHITECTURE.md`.
 | Google Places (New) | resolve every stop, opening hours | live, read only | C |
 | Google Routes | transit time between consecutive stops | live, read only | C |
 | Google Calendar | the finished itinerary as events | live, writes to one test calendar | C |
-| Duffel | flight and stay search and orders | **test mode only**; the client refuses a live key | D |
+| Duffel | flight search and orders | **test mode only**; the client refuses a live key | D |
 | Gemini | drafting, refinement, signal scoring | live | A/C |
 
 ## 3. Failure modes
@@ -49,5 +49,6 @@ transit, bookable, gated, loop.
 
 - <TikTok: no usable API; Reddit and YouTube carry the social signal instead.>
 - <Activity tickets: search and deep link only; no purchase API at affiliate tier.>
-- <Real payment: Duffel test mode only.>
+- Real payment: Duffel test mode only.
+- Stays: Duffel Stays needs a commercial agreement ("contact sales"), so stays are searched and booked on the fake provider only; the bookable eval row is scoped to flights.
 - <Anything cut at 14:00 per the plan's cut order.>
