@@ -204,6 +204,10 @@ def _event_body(date: dt.date, stop: Stop, itinerary_id: str, timezone: str) -> 
     return {
         "summary": stop.place_name,
         "description": f"{stop.why}\n\nItinerary: {itinerary_id}",
-        "start": {"dateTime": dt.datetime.combine(date, stop.start).isoformat(), "timeZone": timezone},
-        "end": {"dateTime": dt.datetime.combine(date, stop.end).isoformat(), "timeZone": timezone},
+        "start": {"dateTime": _local_date_time(date, stop.start), "timeZone": timezone},
+        "end": {"dateTime": _local_date_time(date, stop.end), "timeZone": timezone},
     }
+
+
+def _local_date_time(date: dt.date, time: dt.time) -> str:
+    return dt.datetime.combine(date, time).replace(tzinfo=None).isoformat()

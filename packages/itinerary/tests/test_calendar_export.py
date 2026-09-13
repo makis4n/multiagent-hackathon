@@ -160,3 +160,42 @@ def test_one_event_per_stop_uses_day_dates_and_calendar_timezone() -> None:
             "end": {"dateTime": "2026-11-13T11:45:00", "timeZone": "Europe/Stockholm"},
         },
     ]
+
+
+def test_aware_stop_times_are_sent_as_offset_free_local_times() -> None:
+    aware = dt.timezone(dt.timedelta(hours=2))
+    trip = Itinerary(
+        id="it-aware-time",
+        brief_id="brief-tokyo",
+        days=[
+            Day(
+                date=dt.date(2026, 11, 12),
+                stops=[
+                    Stop(
+                        id="late-breakfast",
+                        day=0,
+                        start=dt.time(10, 15, tzinfo=aware),
+                        end=dt.time(11, 45, tzinfo=aware),
+                        place_name="Kissa",
+                        category="food",
+                        why="A relaxed local breakfast.",
+                    )
+                ],
+            )
+        ],
+    )
+    with respx.mock(base_url=CALENDAR_API_BASE) as mock:
+        mock.get("/users/me/calendarList").mock(
+            return_value=httpx.Response(200, json=recorded("existing_event_calendar_list"))
+        )
+        inserted = mock.post("/calendars/trip-calendar/events").mock(
+            return_value=httpx.Response(200, json=recorded("inserted_event"))
+        )
+        with CalendarClient(StaticTokenProvider("fake-token")) as client:
+            CalendarExporter(client, timezone="Europe/Stockholm").export(trip, brief())
+
+    payload = json.loads(inserted.calls.last.request.content)
+    for key, expected in (("start", "2026-11-12T10:15:00"), ("end", "2026-11-12T11:45:00")):
+        date_time = payload[key]["dateTime"]
+        assert date_time == expected
+        assert "+" not in date_time and not date_time.endswith("Z")
