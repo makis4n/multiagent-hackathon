@@ -26,6 +26,7 @@ CREDENTIALS_ENV = "GOOGLE_CALENDAR_CREDENTIALS_JSON"
 TOKEN_PATH_ENV = "TRIP_CALENDAR_TOKEN_PATH"
 _CACHE_DIR = "trip-agent"
 _CACHE_FILE = "google-calendar-token.json"
+_REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 
 FlowRunner = Callable[[Mapping[str, Any], tuple[str, ...]], Credentials]
 
@@ -51,7 +52,10 @@ def default_token_path() -> Path:
     """Outside the repository by design, so no token can land in the working tree."""
     override = os.environ.get(TOKEN_PATH_ENV)
     if override:
-        return Path(override).expanduser()
+        path = Path(override).expanduser().resolve()
+        if path.is_relative_to(_REPOSITORY_ROOT):
+            raise ToolError(f"{TOKEN_PATH_ENV} must point outside the repository")
+        return path
     base = os.environ.get("XDG_CACHE_HOME")
     root = Path(base).expanduser() if base else Path.home() / ".cache"
     return root / _CACHE_DIR / _CACHE_FILE
@@ -94,20 +98,11 @@ class GoogleTokenProvider:
         raw = os.environ.get(CREDENTIALS_ENV, "").strip()
         if not raw:
             raise ToolError(f"{CREDENTIALS_ENV} is not set; copy .env.example to .env and fill it in")
-        source = Path(raw).expanduser()
-        if source.is_file():
-            try:
-                text = source.read_text(encoding="utf-8")
-            except OSError as exc:
-                log.debug("client secrets unreadable", exc_info=True)
-                raise ToolError(f"{CREDENTIALS_ENV} points at a file that cannot be read") from exc
-        else:
-            text = raw
         try:
-            config = json.loads(text)
+            config = json.loads(raw)
         except ValueError as exc:
             log.debug("client secrets not JSON", exc_info=True)
-            raise ToolError(f"{CREDENTIALS_ENV} is neither a readable JSON file nor JSON itself") from exc
+            raise ToolError(f"{CREDENTIALS_ENV} must be JSON supplied in .env") from exc
         if not isinstance(config, dict) or not ({"installed", "web"} & set(config)):
             raise ToolError(f"{CREDENTIALS_ENV} must hold a Google client secrets object with installed or web")
         return config

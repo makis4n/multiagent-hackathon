@@ -115,4 +115,35 @@ def test_the_cache_file_is_owner_only(tmp_path: Path, monkeypatch: pytest.Monkey
 def test_the_default_cache_path_is_outside_the_repository(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv(TOKEN_PATH_ENV, raising=False)
     repo = Path(importlib.import_module("trip_itinerary").__file__ or ".").resolve().parents[3]
-    assert repo not in default_token_path().resolve().parents
+    assert not default_token_path().resolve().is_relative_to(repo)
+
+
+def test_a_repository_local_token_override_is_rejected_before_storing(monkeypatch: pytest.MonkeyPatch) -> None:
+    repo = Path(importlib.import_module("trip_itinerary").__file__ or ".").resolve().parents[3]
+    target = repo / "calendar-token-must-not-be-written.json"
+    monkeypatch.chdir(repo)
+    monkeypatch.setenv(CREDENTIALS_ENV, CLIENT_CONFIG)
+    monkeypatch.setenv(TOKEN_PATH_ENV, target.name)
+    flow = RecordingFlow("fresh-token")
+
+    with pytest.raises(ToolError, match="must point outside the repository"):
+        GoogleTokenProvider(flow_runner=flow).token()
+
+    assert flow.calls == 0
+    assert not target.exists()
+
+
+def test_credentials_path_is_rejected_as_json_without_reading_it(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    credentials_file = tmp_path / "credentials.json"
+    credentials_file.write_text(CLIENT_CONFIG)
+    monkeypatch.setenv(CREDENTIALS_ENV, str(credentials_file))
+    monkeypatch.setenv(TOKEN_PATH_ENV, str(tmp_path / "token.json"))
+
+    def read_forbidden(self: Path, *, encoding: str | None = None) -> str:
+        raise AssertionError(f"credentials must not be read from {self}")
+
+    monkeypatch.setattr(Path, "read_text", read_forbidden)
+    with pytest.raises(ToolError, match="must be JSON supplied in .env"):
+        GoogleTokenProvider(flow_runner=exploding_flow).token()
