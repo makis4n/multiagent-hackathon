@@ -25,6 +25,8 @@ from trip_core.tools import PlaceResolver
 
 ROUTES_URL = "https://routes.googleapis.com/directions/v2:computeRoutes"
 RETRYABLE = {408, 429, 500, 502, 503, 504}
+DRIVE_TO_TRANSIT = 1.2
+TRANSFER_MINUTES = 5
 
 Travel = Callable[[Place, Place], tuple[int, str]]
 
@@ -44,10 +46,21 @@ class RoutesTravel:
         return self.cache[key]
 
     def _compute(self, origin: Place, destination: Place) -> tuple[int, str]:
+        """Transit when Google has a route; otherwise driving time times 1.2 plus a transfer buffer, a rough
+        stand-in for city transit under a 45-minute cap; straight line only when both fail."""
+        transit = self._route(origin, destination, "TRANSIT")
+        if transit is not None:
+            return transit, "transit"
+        drive = self._route(origin, destination, "DRIVE")
+        if drive is not None:
+            return math.ceil(drive * DRIVE_TO_TRANSIT) + TRANSFER_MINUTES, "drive-based estimate, no transit route"
+        return straight_line_minutes(origin, destination), "no route, straight-line estimate"
+
+    def _route(self, origin: Place, destination: Place, mode: str) -> int | None:
         body = {
             "origin": {"location": {"latLng": {"latitude": origin.lat, "longitude": origin.lng}}},
             "destination": {"location": {"latLng": {"latitude": destination.lat, "longitude": destination.lng}}},
-            "travelMode": "TRANSIT",
+            "travelMode": mode,
         }
         headers = {
             "X-Goog-Api-Key": self.api_key,
@@ -62,10 +75,7 @@ class RoutesTravel:
             raise RetryableError(f"routes {response.status_code}: {response.text[:200]}")
         if response.status_code >= 400:
             raise ToolError(f"routes {response.status_code}: {response.text[:200]}")
-        minutes = parse_duration_minutes(response.json())
-        if minutes is None:
-            return straight_line_minutes(origin, destination), "no transit route, straight-line estimate"
-        return minutes, "transit"
+        return parse_duration_minutes(response.json())
 
 
 def parse_duration_minutes(data: dict[str, Any]) -> int | None:

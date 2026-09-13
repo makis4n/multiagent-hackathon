@@ -47,6 +47,19 @@ def test_parse_place_maps_google_weekdays_onto_the_contract() -> None:
     assert place.is_open(dt.date(2026, 11, 12), dt.time(10, 0)) is False  # Thursday: no period
 
 
+def test_parse_place_open_24_hours_means_every_day() -> None:
+    place = parse_place(
+        {
+            "id": "y",
+            "displayName": {"text": "Omoide Yokocho"},
+            "location": {"latitude": 35.69, "longitude": 139.70},
+            "regularOpeningHours": {"periods": [{"open": {"day": 0, "hour": 0, "minute": 0}}]},
+        }
+    )
+    assert sorted(place.opening_hours) == list(range(7))
+    assert place.is_open(dt.date(2026, 11, 12), dt.time(19, 0)) is True  # a Thursday evening
+
+
 def test_parse_place_without_hours_is_unknown_not_closed() -> None:
     place = parse_place({"id": "x", "displayName": {"text": "X"}, "location": {"latitude": 1, "longitude": 2}})
     assert place.opening_hours == {}
@@ -137,11 +150,13 @@ needs_cassette = pytest.mark.skipif(
 
 
 @needs_cassette
-def test_recorded_tsukiji_resolves_and_has_hours() -> None:
+def test_recorded_mori_art_museum_resolves_with_hours() -> None:
     resolver = GooglePlaces(os.environ.get("GOOGLE_MAPS_API_KEY", "recorded"), client=recorded_places_client("places"))
-    place = resolver.resolve("Tsukiji Outer Market", "Tokyo")
-    assert place is not None and "Tsukiji" in place.name
-    assert 35.6 < place.lat < 35.7 and place.opening_hours
+    place = resolver.resolve("Mori Art Museum", "Tokyo")
+    assert place is not None and "Mori Art Museum" in place.name
+    assert 35.6 < place.lat < 35.7
+    assert place.is_open(dt.date(2026, 11, 12), dt.time(15, 0)) is True  # Thursday 15:00
+    assert place.is_open(dt.date(2026, 11, 17), dt.time(20, 0)) is False  # Tuesday closes 17:00
     assert resolver.get(place.id) is place
 
 
@@ -151,4 +166,5 @@ def test_recorded_transit_between_two_tokyo_places() -> None:
     tsukiji = Place(id="t", name="Tsukiji", lat=35.6654, lng=139.7707)
     teamlab = Place(id="p", name="teamLab Planets", lat=35.6491, lng=139.7897)
     minutes, how = travel(tsukiji, teamlab)
-    assert 5 <= minutes <= 60 and how == "transit"
+    assert 5 <= minutes <= 60
+    assert how in ("transit", "drive-based estimate, no transit route")

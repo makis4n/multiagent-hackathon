@@ -1,0 +1,11 @@
+{
+  "json": {
+    "routes": [
+      {
+        "distanceMeters": 3771,
+        "duration": "545s"
+      }
+    ]
+  },
+  "status": 200
+}

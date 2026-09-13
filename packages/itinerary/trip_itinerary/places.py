@@ -66,9 +66,14 @@ class GooglePlaces:
 
 
 def parse_place(data: dict[str, Any]) -> Place:
-    """Google counts weekdays from Sunday = 0; the contract counts from Monday = 0."""
+    """Google counts weekdays from Sunday = 0; the contract counts from Monday = 0. "Open 24 hours" arrives as one
+    period opening on Sunday at 00:00 with no close, and means every day."""
     hours: dict[int, list[OpeningRange]] = {}
-    for period in (data.get("regularOpeningHours") or {}).get("periods") or []:
+    periods = (data.get("regularOpeningHours") or {}).get("periods") or []
+    if len(periods) == 1 and "close" not in periods[0] and (periods[0].get("open") or {}).get("hour", 0) == 0:
+        all_day = [OpeningRange(open=dt.time(0, 0), close=dt.time(23, 59))]
+        return _place(data, {weekday: list(all_day) for weekday in range(7)})
+    for period in periods:
         opening = period.get("open") or {}
         closing = period.get("close")
         if "day" not in opening:
@@ -82,6 +87,10 @@ def parse_place(data: dict[str, Any]) -> Place:
         else:
             end = dt.time(int(closing.get("hour", 0)), int(closing.get("minute", 0)))
         hours.setdefault(weekday, []).append(OpeningRange(open=start, close=end))
+    return _place(data, hours)
+
+
+def _place(data: dict[str, Any], hours: dict[int, list[OpeningRange]]) -> Place:
     location = data.get("location") or {}
     return Place(
         id=data["id"],

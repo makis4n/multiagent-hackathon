@@ -161,3 +161,25 @@ def test_no_source_at_all_fails_loudly(tmp_path: Path) -> None:
     brief = load_fixture("tokyo").brief
     with pytest.raises(ToolError):
         run(brief, tools, CallLog(tmp_path / "calls.jsonl", brief.id), confirm=lambda option: NOW)
+
+
+def test_stops_that_keep_failing_are_pruned_and_recorded(tmp_path: Path) -> None:
+    from trip_core.models import Check, CheckKind, Itinerary, VerificationReport
+
+    class AlwaysFailsKoenji:
+        def verify(self, itinerary: Itinerary) -> VerificationReport:
+            checks = [
+                Check(stop_id=stop.id, check=CheckKind.exists, ok="Koenji" not in stop.place_name, detail="test")
+                for stop in itinerary.stops()
+            ]
+            return VerificationReport(itinerary_id=itinerary.id, checks=checks)
+
+    fakes = default_fakes()
+    tools = tools_from(fakes)
+    tools.verifier = AlwaysFailsKoenji()
+    brief = load_fixture("tokyo").brief
+    state = run(brief, tools, CallLog(tmp_path / "calls.jsonl", brief.id), confirm=lambda option: None)
+    assert state.report is not None and state.report.passed
+    assert state.itinerary is not None
+    assert not any("Koenji" in stop.place_name for stop in state.itinerary.stops())
+    assert any(swap.old.place_name == "Koenji" for swap in state.replacements)

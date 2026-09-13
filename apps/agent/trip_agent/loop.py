@@ -16,6 +16,7 @@ from trip_core.models import (
     BookingKind,
     BookingOption,
     Itinerary,
+    ItineraryPatch,
     Replacement,
     Signal,
     StopStatus,
@@ -39,6 +40,7 @@ from trip_core.tools import (
 Confirm = Callable[[BookingOption], dt.datetime | None]
 Ask = Callable[[str], str | None]
 DEFAULT_BOOKINGS: tuple[BookingKind, ...] = (BookingKind.flight, BookingKind.stay)
+REPLACEMENT_PASSES = 2
 
 
 @dataclass
@@ -107,30 +109,49 @@ def stage_refine(state: TripState, tools: Tools, log: CallLog, answers: dict[str
 
 
 def stage_verify(state: TripState, tools: Tools, log: CallLog) -> TripState:
-    """Resolve, verify, one replacement pass for what failed, verify again. Records what was swapped."""
+    """Resolve and verify; up to REPLACEMENT_PASSES rounds of replacements for what failed; then prune whatever
+    still fails so the finished plan is fully verified. Every swap and removal lands in state.replacements."""
     if state.itinerary is None:
         raise ValueError("verify before draft")
     near = state.brief.destination
     itinerary, places = log.call("places.resolve", resolve_places, state.itinerary, tools.resolver, near)
     report = log.call("verifier.verify", tools.verifier.verify, itinerary)
-    if not report.passed:
+    for _ in range(REPLACEMENT_PASSES):
+        if report.passed:
+            break
         marked = mark(itinerary, report)
         patches = log.call(
             "planner.replace_failed", tools.planner.replace_failed, state.brief, marked, report, state.signals
         )
-        for patch in patches:
-            if patch.stop_id is not None:
-                day_index, stop_index = marked.locate(patch.stop_id)
-                old = marked.days[day_index].stops[stop_index]
-                new = patch.stop if patch.op == "replace" else None
-                state.replacements.append(Replacement(old=old, new=new, reason=old.failure_reason or "failed"))
-            itinerary = apply_patch(itinerary, patch)
+        if not patches:
+            break
+        itinerary = apply_patches(state, marked, itinerary, patches)
+        itinerary, places = log.call("places.resolve", resolve_places, itinerary, tools.resolver, near)
+        report = log.call("verifier.verify", tools.verifier.verify, itinerary)
+    if not report.passed:
+        marked = mark(itinerary, report)
+        prune = [ItineraryPatch(op="remove", stop_id=stop_id) for stop_id in report.failed_stop_ids()]
+        itinerary = apply_patches(state, marked, itinerary, prune)
         itinerary, places = log.call("places.resolve", resolve_places, itinerary, tools.resolver, near)
         report = log.call("verifier.verify", tools.verifier.verify, itinerary)
     state.itinerary = mark(itinerary, report)
     state.places = places
     state.report = report
     return state
+
+
+def apply_patches(
+    state: TripState, marked: Itinerary, itinerary: Itinerary, patches: list[ItineraryPatch]
+) -> Itinerary:
+    """Applies patches in order and records each swap or removal against the marked (failure-annotated) copy."""
+    for patch in patches:
+        if patch.stop_id is not None:
+            day_index, stop_index = marked.locate(patch.stop_id)
+            old = marked.days[day_index].stops[stop_index]
+            new = patch.stop if patch.op == "replace" else None
+            state.replacements.append(Replacement(old=old, new=new, reason=old.failure_reason or "failed"))
+        itinerary = apply_patch(itinerary, patch)
+    return itinerary
 
 
 def stage_search(
