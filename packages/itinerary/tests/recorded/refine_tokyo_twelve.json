@@ -1,0 +1,208 @@
+{
+  "patches": [
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-10",
+        "day": 1,
+        "start": "09:00",
+        "end": "10:00",
+        "place_name": "Candidate 0",
+        "category": "walk",
+        "why": "A thread called this one worth an hour.",
+        "signal_ids": [
+          "sig-1"
+        ]
+      },
+      "target_day": 1,
+      "position": null
+    },
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-11",
+        "day": 1,
+        "start": "09:00",
+        "end": "10:00",
+        "place_name": "Candidate 1",
+        "category": "walk",
+        "why": "A thread called this one worth an hour.",
+        "signal_ids": [
+          "sig-1"
+        ]
+      },
+      "target_day": 1,
+      "position": null
+    },
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-12",
+        "day": 1,
+        "start": "09:00",
+        "end": "10:00",
+        "place_name": "Candidate 2",
+        "category": "walk",
+        "why": "A thread called this one worth an hour.",
+        "signal_ids": [
+          "sig-1"
+        ]
+      },
+      "target_day": 1,
+      "position": null
+    },
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-13",
+        "day": 1,
+        "start": "09:00",
+        "end": "10:00",
+        "place_name": "Candidate 3",
+        "category": "walk",
+        "why": "A thread called this one worth an hour.",
+        "signal_ids": [
+          "sig-1"
+        ]
+      },
+      "target_day": 1,
+      "position": null
+    },
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-14",
+        "day": 1,
+        "start": "09:00",
+        "end": "10:00",
+        "place_name": "Candidate 4",
+        "category": "walk",
+        "why": "A thread called this one worth an hour.",
+        "signal_ids": [
+          "sig-1"
+        ]
+      },
+      "target_day": 1,
+      "position": null
+    },
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-15",
+        "day": 1,
+        "start": "09:00",
+        "end": "10:00",
+        "place_name": "Candidate 5",
+        "category": "walk",
+        "why": "A thread called this one worth an hour.",
+        "signal_ids": [
+          "sig-1"
+        ]
+      },
+      "target_day": 1,
+      "position": null
+    },
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-16",
+        "day": 1,
+        "start": "09:00",
+        "end": "10:00",
+        "place_name": "Candidate 6",
+        "category": "walk",
+        "why": "A thread called this one worth an hour.",
+        "signal_ids": [
+          "sig-1"
+        ]
+      },
+      "target_day": 1,
+      "position": null
+    },
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-17",
+        "day": 1,
+        "start": "09:00",
+        "end": "10:00",
+        "place_name": "Candidate 7",
+        "category": "walk",
+        "why": "A thread called this one worth an hour.",
+        "signal_ids": [
+          "sig-1"
+        ]
+      },
+      "target_day": 1,
+      "position": null
+    },
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-18",
+        "day": 1,
+        "start": "09:00",
+        "end": "10:00",
+        "place_name": "Candidate 8",
+        "category": "walk",
+        "why": "A thread called this one worth an hour.",
+        "signal_ids": [
+          "sig-1"
+        ]
+      },
+      "target_day": 1,
+      "position": null
+    },
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-19",
+        "day": 1,
+        "start": "09:00",
+        "end": "10:00",
+        "place_name": "Candidate 9",
+        "category": "walk",
+        "why": "A thread called this one worth an hour.",
+        "signal_ids": [
+          "sig-1"
+        ]
+      },
+      "target_day": 1,
+      "position": null
+    },
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-110",
+        "day": 1,
+        "start": "09:00",
+        "end": "10:00",
+        "place_name": "Candidate 10",
+        "category": "walk",
+        "why": "A thread called this one worth an hour.",
+        "signal_ids": [
+          "sig-1"
+        ]
+      },
+      "target_day": 1,
+      "position": null
+    },
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-111",
+        "day": 1,
+        "start": "09:00",
+        "end": "10:00",
+        "place_name": "Candidate 11",
+        "category": "walk",
+        "why": "A thread called this one worth an hour.",
+        "signal_ids": [
+          "sig-1"
+        ]
+      },
+      "target_day": 1,
+      "position": null
+    }
+  ]
+}

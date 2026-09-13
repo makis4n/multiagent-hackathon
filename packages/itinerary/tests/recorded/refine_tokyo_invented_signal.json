@@ -1,0 +1,19 @@
+{
+  "patches": [
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-04",
+        "day": 1,
+        "start": "14:00",
+        "end": "16:00",
+        "place_name": "Kiyosumi Teien",
+        "category": "nature",
+        "why": "Two threads called the stepping stones worth the detour after lunch.",
+        "signal_ids": ["sig-1", "sig-99", "sig-2"]
+      },
+      "target_day": 1,
+      "position": null
+    }
+  ]
+}

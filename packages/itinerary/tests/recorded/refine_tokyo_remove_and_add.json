@@ -1,0 +1,23 @@
+{
+  "patches": [
+    {
+      "op": "remove",
+      "stop_id": "stop-01"
+    },
+    {
+      "op": "add",
+      "stop": {
+        "id": "stop-02",
+        "day": 1,
+        "start": "10:00",
+        "end": "12:30",
+        "place_name": "Nezu Museum",
+        "category": "museum",
+        "why": "Two threads called the garden the quietest hour in Omotesando.",
+        "signal_ids": ["sig-1"]
+      },
+      "target_day": 1,
+      "position": null
+    }
+  ]
+}

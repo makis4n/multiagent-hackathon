@@ -7,8 +7,10 @@ every filter lives here in code, after the call: the prompt asks, the code decid
 from __future__ import annotations
 
 from trip_core import llm
-from trip_core.models import MAX_QUESTIONS, Itinerary, TripBrief
-from trip_itinerary.schemas import QuestionsResponse
+from trip_core.models import MAX_QUESTIONS, Itinerary, ItineraryPatch, Signal, TripBrief, apply_patch
+from trip_itinerary.schemas import PatchesResponse, QuestionsResponse, to_patches
+
+MAX_PATCHES = 8
 
 QUESTIONS_SYSTEM = (
     "You help a travel planner close the gaps in one specific trip plan. "
@@ -33,6 +35,39 @@ Rules for each question:
 - no question that repeats one already answered above
 
 Return only the questions."""
+
+REFINE_SYSTEM = (
+    "You edit an existing trip plan. You answer with patches to that plan and never with a new plan. "
+    "You only name stops and signals that were given to you."
+)
+
+REFINE_PROMPT = """Here is the trip, the plan the traveller has already seen, and what they just told us.
+
+{brief}
+
+Plan so far:
+{itinerary}
+
+What the traveller just answered:
+{answers}
+
+Answers collected earlier:
+{answered}
+
+Signals you may cite, by id:
+{signals}
+
+Write at most {limit} patches that act on these answers and nothing else.
+Rules for each patch:
+- op is one of add, remove, move, replace
+- remove, move and replace name a stop_id from the plan above
+- add and replace carry a full stop with a new id, a category, and one sentence of why
+- add and move name a target_day inside the plan above, counting from 0
+- signal_ids come from the list above; never invent one
+- times are HH:MM on a 24 hour clock
+- change only what the answers ask for, and leave every other stop alone
+
+Return only the patches."""
 
 
 def summarise_brief(brief: TripBrief) -> str:
@@ -67,9 +102,25 @@ def summarise_itinerary(itinerary: Itinerary) -> str:
 
 
 def summarise_answers(brief: TripBrief) -> str:
-    if not brief.answers:
+    return summarise_given_answers(brief.answers)
+
+
+def summarise_given_answers(answers: dict[str, str]) -> str:
+    """One line per question and answer. Pure."""
+    if not answers:
         return "none yet"
-    return "\n".join(f"- {question} -> {answer}" for question, answer in brief.answers.items())
+    return "\n".join(f"- {question} -> {answer}" for question, answer in answers.items())
+
+
+def summarise_signals(signals: list[Signal]) -> str:
+    """One line per signal, id first so the model can cite it. Pure."""
+    if not signals:
+        return "none given"
+    lines: list[str] = []
+    for signal in signals:
+        places = ", ".join(signal.places_mentioned) if signal.places_mentioned else "no place named"
+        lines.append(f"- {signal.id} [{signal.source.value}] {signal.title}: {signal.excerpt} (places: {places})")
+    return "\n".join(lines)
 
 
 def build_questions_prompt(brief: TripBrief, itinerary: Itinerary) -> str:
@@ -82,16 +133,29 @@ def build_questions_prompt(brief: TripBrief, itinerary: Itinerary) -> str:
     )
 
 
+def build_refine_prompt(brief: TripBrief, itinerary: Itinerary, answers: dict[str, str], signals: list[Signal]) -> str:
+    """Pure. The exact prompt `refine` sends."""
+    return REFINE_PROMPT.format(
+        brief=summarise_brief(brief),
+        itinerary=summarise_itinerary(itinerary),
+        answers=summarise_given_answers(answers),
+        answered=summarise_answers(brief),
+        signals=summarise_signals(signals),
+        limit=MAX_PATCHES,
+    )
+
+
 def _key(text: str) -> str:
     """Whitespace and case folded away, so a near-repeat of an answered question still counts as the same one."""
     return " ".join(text.split()).casefold()
 
 
 class GeminiPlanner:
-    """Lane C's real `ItineraryPlanner`. Only `questions` is model-backed so far."""
+    """Lane C's real `ItineraryPlanner`. `questions` and `refine` are model-backed so far."""
 
     def __init__(self, *, temperature: float = 0.3) -> None:
         self.temperature = temperature
+        self.last_dropped: list[str] = []
 
     def questions(self, brief: TripBrief, itinerary: Itinerary) -> list[str]:
         """At most MAX_QUESTIONS, none of them already answered in the brief."""
@@ -117,4 +181,39 @@ class GeminiPlanner:
             kept.append(question)
             if len(kept) == MAX_QUESTIONS:
                 break
+        return kept
+
+    def refine(
+        self, brief: TripBrief, itinerary: Itinerary, answers: dict[str, str], signals: list[Signal]
+    ) -> list[ItineraryPatch]:
+        """Patches only, every one of them applicable, at most MAX_PATCHES. Drops are recorded, never raised."""
+        self.last_dropped = []
+        response = llm.complete_json(
+            build_refine_prompt(brief, itinerary, answers, signals),
+            PatchesResponse,
+            model=llm.model_main(),
+            system=REFINE_SYSTEM,
+            temperature=self.temperature,
+        )
+        mapped = to_patches(response, itinerary, [signal.id for signal in signals])
+        self.last_dropped.extend(mapped.dropped)
+        return self._applicable(itinerary, mapped.patches)
+
+    def _applicable(self, itinerary: Itinerary, candidates: list[ItineraryPatch]) -> list[ItineraryPatch]:
+        """In order, onto an accumulating copy: a later patch may legitimately depend on an earlier one.
+
+        `apply_patch` raises ValueError for its own guards and KeyError out of `Itinerary.locate`, so both.
+        """
+        kept: list[ItineraryPatch] = []
+        state = itinerary
+        for index, patch in enumerate(candidates):
+            if len(kept) == MAX_PATCHES:
+                self.last_dropped.append(f"patch {index}: over the cap of {MAX_PATCHES} patches a round")
+                continue
+            try:
+                state = apply_patch(state, patch)
+            except (KeyError, ValueError) as error:
+                self.last_dropped.append(f"patch {index}: does not apply: {error}")
+                continue
+            kept.append(patch)
         return kept
