@@ -32,15 +32,16 @@ from trip_agent.loop import (
 from trip_agent.registry import build_tools
 from trip_core.models import BudgetBand, Signal, TripBrief, TripState
 
+# Material Symbols, the vector icon set Streamlit ships; rendered through the :material/name: shortcode.
 STYLES = {
-    "food": "🍜",
-    "art": "🎨",
-    "museums": "🏛️",
-    "nightlife": "🌃",
-    "nature": "🌿",
-    "family": "🧸",
-    "shopping": "🛍️",
-    "neighbourhood walks": "🚶",
+    "food": ":material/restaurant:",
+    "art": ":material/palette:",
+    "museums": ":material/museum:",
+    "nightlife": ":material/nightlife:",
+    "nature": ":material/park:",
+    "family": ":material/family_restroom:",
+    "shopping": ":material/shopping_bag:",
+    "neighbourhood walks": ":material/directions_walk:",
 }
 BUDGET_MIN, BUDGET_MAX = 30, 600
 BUDGET_LOW_BELOW, BUDGET_HIGH_FROM = 100, 250
@@ -240,8 +241,8 @@ div[class*="st-key-ticket-"] {{
 .ticket-sub {{ display: block; font-size: 0.78rem; color: var(--muted); }}
 </style>"""
 
-# Loading bar in the style of a game's world-generation screen: a chunky segmented bar filling in steps, a
-# rotating tip under it. It is an iframe so it keeps animating while Python is blocked in a stage.
+# Loading bar: a slim accent bar easing toward full over the expected stage time, a rotating tip under it.
+# It is an iframe so it keeps animating while Python is blocked in a stage.
 RESEARCH_TIPS = [
     "Reading Reddit so you don't have to",
     "Skimming a hundred vlogs at 2x speed",
@@ -267,24 +268,22 @@ VERIFY_TIPS = [
     "Making sure day three doesn't end in Yokohama",
 ]
 LOADER_HTML = """
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap">
 <style>
-  body { margin: 0; background: transparent; font-family: "Press Start 2P", monospace; color: #14171C; }
-  .wrap { padding: 8px 4px 0 4px; }
-  .label { font-size: 11px; margin: 0 0 12px 0; letter-spacing: 0.02em; }
-  .track {
-    height: 22px; border: 3px solid #14171C; background: #6B7280; box-shadow: inset 0 -5px 0 #4B5563;
-    image-rendering: pixelated;
-  }
+  body { margin: 0; background: transparent; font-family: "Manrope", sans-serif; color: #14171C; }
+  .wrap { padding: 6px 2px 0 2px; }
+  .label { font-size: 15px; font-weight: 700; margin: 0 0 10px 0; letter-spacing: -0.01em; }
+  .track { height: 8px; border-radius: 999px; background: #E9EDF2; overflow: hidden; }
   .fill {
-    height: 100%; width: 4%; background: #22C55E; box-shadow: inset 0 -5px 0 #15803D, inset 0 5px 0 #86EFAC;
-    animation: fill __SECONDS__s steps(46, end) forwards;
+    height: 100%; width: 3%; border-radius: 999px;
+    background: linear-gradient(90deg, #0B5FD9, #3B82F6);
+    animation: fill __SECONDS__s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
   }
-  @keyframes fill { from { width: 4%; } to { width: 94%; } }
-  .tip { font-size: 9px; color: #5B6470; margin: 12px 0 0 0; line-height: 1.7; min-height: 30px; }
-  .tip::after { content: "_"; animation: blink 1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-  @media (prefers-reduced-motion: reduce) { .fill { animation-duration: 0.1s; } .tip::after { animation: none; } }
+  @keyframes fill { from { width: 3%; } to { width: 94%; } }
+  .tip { font-size: 13px; font-weight: 500; color: #5B6470; margin: 10px 0 0 0; min-height: 20px; }
+  .tip.swap { animation: rise 0.35s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .fill, .tip.swap { animation-duration: 0.01s; } }
 </style>
 <div class="wrap">
   <p class="label">__LABEL__</p>
@@ -293,10 +292,13 @@ LOADER_HTML = """
 </div>
 <script>
   const tips = __TIPS__;
-  let order = tips.map((_, i) => i).sort(() => Math.random() - 0.5);
+  const order = tips.map((_, i) => i).sort(() => Math.random() - 0.5);
   let at = 0;
   const el = document.getElementById("tip");
-  function next() { el.textContent = tips[order[at % order.length]]; at += 1; }
+  function next() {
+    el.classList.remove("swap"); void el.offsetWidth;
+    el.textContent = tips[order[at % order.length]]; el.classList.add("swap"); at += 1;
+  }
   next();
   setInterval(next, 2600);
 </script>
@@ -338,7 +340,7 @@ def loader(label: str, tips: list[str], seconds: int) -> None:
         .replace("__TIPS__", json.dumps(tips))
         .replace("__SECONDS__", str(seconds))
     )
-    components.html(body, height=120)
+    components.html(body, height=96)
 
 
 def hero() -> None:
