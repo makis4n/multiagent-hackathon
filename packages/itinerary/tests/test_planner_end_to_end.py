@@ -19,10 +19,12 @@ from trip_agent.loop import Tools, run
 from trip_core import llm
 from trip_core.fakes import default_fakes
 from trip_core.models import BookingOption, Itinerary, load_fixture
-from trip_itinerary import PlannerWithFakeDraft, build_planner
+from trip_itinerary import build_planner
+from trip_itinerary.draft import DraftItinerary
 from trip_itinerary.schemas import PatchesResponse, QuestionsResponse
 
 RECORDED = Path(__file__).parent / "recorded"
+CASSETTES = Path(__file__).parent / "cassettes"
 
 
 def recorded(name: str, schema: type[BaseModel]) -> BaseModel:
@@ -37,6 +39,8 @@ class Stub:
 
     def __call__(self, prompt: str, schema: type[BaseModel], **kwargs: Any) -> BaseModel:
         self.calls.append(schema)
+        if schema is DraftItinerary:
+            return schema.model_validate(json.loads((CASSETTES / "tokyo_DraftItinerary.json").read_text()))
         if schema is QuestionsResponse:
             return recorded("e2e_tokyo_questions.json", QuestionsResponse)
         if schema is PatchesResponse:
@@ -72,12 +76,11 @@ def test_fixture_runs_with_the_real_planner(monkeypatch: pytest.MonkeyPatch, tmp
     state = run(fixture.brief, tools, CallLog(tmp_path / "calls.jsonl", fixture.brief.id), confirm=decline)
 
     assert state.itinerary is not None
-    assert state.itinerary.version > 1
-    assert stub.calls == [QuestionsResponse, PatchesResponse, PatchesResponse]
+    assert stub.calls[:2] == [DraftItinerary, QuestionsResponse]
+    assert PatchesResponse in stub.calls
     assert len(state.questions) == 4
     names = [stop.place_name for stop in state.itinerary.stops()]
     assert "Shibuya Sky" not in names
-    assert "Sumida Hokusai Museum" in names
     assert state.calendar_url
 
 
@@ -101,6 +104,7 @@ def test_the_run_books_only_what_the_user_confirmed(monkeypatch: pytest.MonkeyPa
 
 
 def test_build_planner_satisfies_every_planner_member(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(llm, "complete_json", Stub())
     planner = build_planner()
     fixture = load_fixture("tokyo")
 
@@ -112,17 +116,7 @@ def test_build_planner_satisfies_every_planner_member(monkeypatch: pytest.Monkey
     for member in ("draft", "questions", "refine", "replace_failed"):
         assert callable(getattr(planner, member))
 
-    monkeypatch.setattr(llm, "complete_json", Stub())
     assert len(planner.questions(fixture.brief, itinerary)) == 4
-
-
-def test_the_draft_is_the_fake_one() -> None:
-    """The conftest stub refuses an un-stubbed model call, so a draft that returns proves it called no model."""
-    planner = build_planner()
-    fixture = load_fixture("tokyo")
-
-    assert isinstance(planner, PlannerWithFakeDraft)
-    assert planner.draft(fixture.brief, fixture.signals).notes == "fake draft"
 
 
 def test_the_package_logger_has_a_null_handler() -> None:

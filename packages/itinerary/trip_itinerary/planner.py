@@ -1,4 +1,5 @@
-"""The model-backed planner. Gemini through `trip_core.llm`, contract types in and out.
+"""The model-backed planner. Claude through `trip_core.llm`, contract types in and out. `draft` lives in
+`trip_itinerary.draft`; questions, refine and replace_failed are here.
 
 The prompt builders are pure and exported so a test can read the prompt without a model call. Every cap and
 every filter lives here in code, after the call: the prompt asks, the code decides.
@@ -22,6 +23,7 @@ from trip_core.models import (
     VerificationReport,
     apply_patch,
 )
+from trip_itinerary import draft as drafting
 from trip_itinerary.schemas import PatchesResponse, QuestionsResponse, to_patches
 
 log = logging.getLogger(__name__)
@@ -260,11 +262,15 @@ def _key(text: str) -> str:
 
 
 class GeminiPlanner:
-    """Lane C's real `ItineraryPlanner`. `questions`, `refine` and `replace_failed` are model-backed so far."""
+    """Lane C's real `ItineraryPlanner`. Every method is model-backed; the name predates the switch to Claude."""
 
     def __init__(self, *, temperature: float = 0.3) -> None:
         self.temperature = temperature
         self.last_dropped: list[str] = []
+
+    def draft(self, brief: TripBrief, signals: list[Signal]) -> Itinerary:
+        """The first plan, from the signals. A failure here propagates: there is nothing to fall back to."""
+        return drafting.draft(brief, signals, llm.complete_json, model=llm.model_main())
 
     def questions(self, brief: TripBrief, itinerary: Itinerary) -> list[str]:
         """At most MAX_QUESTIONS, none of them already answered in the brief. A model failure asks nothing."""

@@ -91,8 +91,13 @@ def stage_research(state: TripState, tools: Tools, log: CallLog) -> TripState:
 
 
 def stage_draft(state: TripState, tools: Tools, log: CallLog) -> TripState:
-    state.itinerary = log.call("planner.draft", tools.planner.draft, state.brief, state.signals)
-    state.questions = log.call("planner.questions", tools.planner.questions, state.brief, state.itinerary)
+    """Drafts, asks the questions, and resolves each stop to a place so the draft already carries place ids and
+    photos. Verify resolves again; stops that already have a place_id take the cheaper `get` path there."""
+    itinerary = log.call("planner.draft", tools.planner.draft, state.brief, state.signals)
+    state.questions = log.call("planner.questions", tools.planner.questions, state.brief, itinerary)
+    state.itinerary, state.places = log.call(
+        "places.resolve", resolve_places, itinerary, tools.resolver, state.brief.destination
+    )
     return state
 
 

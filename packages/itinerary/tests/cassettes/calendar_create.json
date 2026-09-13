@@ -1,0 +1,38 @@
+{
+  "empty_calendar_list": {
+    "kind": "calendar#calendarList",
+    "items": []
+  },
+  "created_calendar": {
+    "kind": "calendar#calendar",
+    "id": "tokyo-2026-11-12@group.calendar.google.com",
+    "summary": "Tokyo 2026-11-12",
+    "timeZone": "Europe/Stockholm"
+  },
+  "existing_calendar_list": {
+    "kind": "calendar#calendarList",
+    "items": [
+      {
+        "kind": "calendar#calendarListEntry",
+        "id": "tokyo-2026-11-12@group.calendar.google.com",
+        "summary": "Tokyo 2026-11-12",
+        "timeZone": "Europe/Stockholm"
+      }
+    ]
+  },
+  "existing_event_calendar_list": {
+    "kind": "calendar#calendarList",
+    "items": [
+      {
+        "kind": "calendar#calendarListEntry",
+        "id": "trip-calendar",
+        "summary": "Tokyo 2026-11-12",
+        "timeZone": "Europe/Stockholm"
+      }
+    ]
+  },
+  "inserted_event": {
+    "kind": "calendar#event",
+    "id": "generated-event"
+  }
+}

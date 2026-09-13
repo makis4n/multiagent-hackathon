@@ -29,10 +29,32 @@ from trip_agent.loop import (
     stage_search,
     stage_verify,
 )
-from trip_agent.registry import active_flags, build_tools, inject_booking_failure
+from trip_agent.registry import build_tools
 from trip_core.models import BudgetBand, Signal, TripBrief, TripState
 
-STYLES = ["food", "art", "museums", "nightlife", "nature", "family", "shopping", "neighbourhood walks"]
+# Material Symbols, the vector icon set Streamlit ships; rendered through the :material/name: shortcode.
+STYLES = {
+    "food": ":material/restaurant:",
+    "art": ":material/palette:",
+    "museums": ":material/museum:",
+    "nightlife": ":material/nightlife:",
+    "nature": ":material/park:",
+    "family": ":material/family_restroom:",
+    "shopping": ":material/shopping_bag:",
+    "neighbourhood walks": ":material/directions_walk:",
+}
+# Stop categories (Stop.category) and statuses, as Material Symbols ligature names, for the manifest pills.
+CATEGORY_ICONS = {
+    "food": "restaurant",
+    "sight": "photo_camera",
+    "museum": "museum",
+    "walk": "directions_walk",
+    "nightlife": "nightlife",
+    "shopping": "shopping_bag",
+    "nature": "park",
+    "rest": "hotel",
+}
+STATUS_ICONS = {"draft": "edit", "verified": "check_circle", "failed": "error"}
 BUDGET_MIN, BUDGET_MAX = 30, 600
 BUDGET_LOW_BELOW, BUDGET_HIGH_FROM = 100, 250
 BUDGET_QUESTION = "Budget per person per day"
@@ -87,6 +109,17 @@ ORIGINS = [
     "Tokyo Narita (NRT)",
 ]
 
+PRODUCT = "Tripia"
+# The mark: a paper plane gliding down into an inbox tray. Inline SVG, currentColor, so it takes the text colour
+# wherever it sits and the accent where the brand does.
+LOGO_SVG = """<svg class="logo" viewBox="0 0 48 48" width="{size}" height="{size}" fill="none" aria-hidden="true">
+<path d="M8 27h9l3 5h8l3-5h9v11a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3V27z" fill="currentColor" opacity="0.18"/>
+<path d="M8 27h9l3 5h8l3-5h9m-32 0v11a3 3 0 0 0 3 3h26a3 3 0 0 0 3-3V27M8 27l4-8m28 8-4-8"
+ stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M41 5 21 14l7 3.5L31 25l10-20z" fill="currentColor"/>
+<path d="M28 17.5 41 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+</svg>"""
+
 FONT_LINK = (
     "https://fonts.googleapis.com/css2?"
     "family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800"
@@ -106,6 +139,12 @@ STYLE_BLOCK = f"""
 [data-testid="stAppViewContainer"] p, [data-testid="stAppViewContainer"] li {{ line-height: 1.55; }}
 h1, h2, h3 {{ font-family: "Bricolage Grotesque", sans-serif; letter-spacing: -0.01em; }}
 
+.brand {{ display: flex; align-items: center; gap: 0.55rem; color: var(--accent); margin: 0 0 1rem 0; }}
+.brand-name {{
+  font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em;
+  color: var(--ink);
+}}
+.brand.hero-brand {{ margin-bottom: 0.4rem; }}
 .hero {{ margin: 0.2rem 0 1.2rem 0; }}
 .hero-kicker {{
   font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent);
@@ -150,18 +189,6 @@ h1, h2, h3 {{ font-family: "Bricolage Grotesque", sans-serif; letter-spacing: -0
 }}
 .trip-cell-value {{ font-weight: 700; font-variant-numeric: tabular-nums; }}
 
-.tool-row {{ display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.6rem 0 0.4rem 0; }}
-.tool-tag {{
-  font-size: 0.66rem; font-weight: 600; padding: 0.15rem 0.55rem; border-radius: 999px; border: 1px solid var(--line);
-  color: var(--muted);
-}}
-.tool-tag[data-on="1"] {{
-  color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); background: #E3F5EC;
-}}
-.tool-tag[data-on="fail"] {{
-  color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, transparent); background: #FBE5E2;
-}}
-
 .src-list {{ display: flex; flex-direction: column; gap: 0.15rem; }}
 .src {{
   display: grid; grid-template-columns: 2.4rem 1fr auto; gap: 0.5rem; align-items: baseline;
@@ -185,31 +212,45 @@ h1, h2, h3 {{ font-family: "Bricolage Grotesque", sans-serif; letter-spacing: -0
   display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.4rem;
 }}
 .day-title small {{ font-family: "Manrope", sans-serif; font-weight: 600; font-size: 0.78rem; color: var(--muted); }}
-table.manifest {{ width: 100%; border-collapse: collapse; }}
-table.manifest td {{ vertical-align: top; padding: 0.55rem 0.6rem 0.55rem 0; border-bottom: 1px solid var(--line); }}
-table.manifest tr:last-child td {{ border-bottom: none; }}
-.stop-photo {{ width: 6.8rem; }}
+/* The manifest: one rounded card per day. Streamlit styles every markdown table (cell borders, block display),
+   so the overrides below carry !important. */
+.manifest-wrap {{ border: 1px solid var(--line); border-radius: 0.9rem; overflow: hidden; background: #fff; }}
+table.manifest {{ width: 100% !important; display: table !important; border-collapse: collapse; margin: 0 !important; }}
+table.manifest td {{
+  vertical-align: top; padding: 0.9rem 1rem !important; border: 0 !important;
+  border-bottom: 1px solid var(--line) !important;
+}}
+table.manifest tr:last-child td {{ border-bottom: 0 !important; }}
+table.manifest td.stop-photo {{ width: 7.4rem; padding-right: 0 !important; }}
 .stop-photo img, .stop-photo span {{
   width: 6.4rem; height: 4.6rem; border-radius: 0.6rem; display: block; object-fit: cover; background: var(--panel);
 }}
-.stop-time {{
+table.manifest td.stop-time {{
   font-family: "JetBrains Mono", monospace; font-size: 0.78rem; color: var(--muted); white-space: nowrap;
-  width: 6.6rem; padding-top: 0.7rem;
+  width: 7.2rem; padding-top: 1.15rem !important;
 }}
-.stop-place {{ font-weight: 700; font-size: 1rem; margin-right: 0.45rem; }}
-.stop-cat {{
-  font-size: 0.64rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
-  border: 1px solid var(--line); border-radius: 999px; padding: 0.1rem 0.5rem; margin-right: 0.4rem;
-  vertical-align: middle;
+.stop-head {{ display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }}
+.stop-place {{ font-weight: 700; font-size: 1rem; margin-right: 0.15rem; }}
+/* Pills shaped like the sidebar's st.pills: full radius, hairline border, small text, a Material icon first. */
+.pill {{
+  display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; font-weight: 500; line-height: 1;
+  padding: 0.28rem 0.7rem 0.28rem 0.55rem; border-radius: 999px; border: 1px solid rgba(49, 51, 63, 0.2);
+  color: var(--ink); background: transparent; white-space: nowrap;
 }}
-.stop-status {{
-  font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 999px;
-  padding: 0.12rem 0.5rem; vertical-align: middle;
+.pill .ms {{
+  font-family: "Material Symbols Rounded"; font-weight: 400; font-style: normal; font-size: 1rem; line-height: 1;
+  letter-spacing: normal; text-transform: none; display: inline-block; font-feature-settings: "liga";
 }}
-.stop-status[data-status="verified"] {{ color: var(--ok); background: #E3F5EC; }}
-.stop-status[data-status="draft"] {{ color: var(--warn); background: #FBF0DA; }}
-.stop-status[data-status="failed"] {{ color: var(--bad); background: #FBE5E2; }}
-.stop-why {{ color: var(--muted); font-size: 0.86rem; margin: 0.25rem 0 0 0; }}
+.pill[data-status="verified"] {{
+  color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); background: #E3F5EC;
+}}
+.pill[data-status="draft"] {{
+  color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); background: #FBF0DA;
+}}
+.pill[data-status="failed"] {{
+  color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, transparent); background: #FBE5E2;
+}}
+.stop-why {{ color: var(--muted); font-size: 0.86rem; margin: 0.4rem 0 0 0; }}
 
 .stat {{ border: 1px solid var(--line); border-radius: 0.9rem; padding: 0.8rem 1rem; }}
 .stat-label {{
@@ -243,8 +284,8 @@ div[class*="st-key-ticket-"] {{
 .ticket-sub {{ display: block; font-size: 0.78rem; color: var(--muted); }}
 </style>"""
 
-# Loading bar in the style of a game's world-generation screen: a chunky segmented bar filling in steps, a
-# rotating tip under it. It is an iframe so it keeps animating while Python is blocked in a stage.
+# Loading bar: a slim accent bar easing toward full over the expected stage time, a rotating tip under it.
+# It is an iframe so it keeps animating while Python is blocked in a stage.
 RESEARCH_TIPS = [
     "Reading Reddit so you don't have to",
     "Skimming a hundred vlogs at 2x speed",
@@ -270,24 +311,22 @@ VERIFY_TIPS = [
     "Making sure day three doesn't end in Yokohama",
 ]
 LOADER_HTML = """
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&display=swap">
 <style>
-  body { margin: 0; background: transparent; font-family: "Press Start 2P", monospace; color: #14171C; }
-  .wrap { padding: 8px 4px 0 4px; }
-  .label { font-size: 11px; margin: 0 0 12px 0; letter-spacing: 0.02em; }
-  .track {
-    height: 22px; border: 3px solid #14171C; background: #6B7280; box-shadow: inset 0 -5px 0 #4B5563;
-    image-rendering: pixelated;
-  }
+  body { margin: 0; background: transparent; font-family: "Manrope", sans-serif; color: #14171C; }
+  .wrap { padding: 6px 2px 0 2px; }
+  .label { font-size: 15px; font-weight: 700; margin: 0 0 10px 0; letter-spacing: -0.01em; }
+  .track { height: 8px; border-radius: 999px; background: #E9EDF2; overflow: hidden; }
   .fill {
-    height: 100%; width: 4%; background: #22C55E; box-shadow: inset 0 -5px 0 #15803D, inset 0 5px 0 #86EFAC;
-    animation: fill __SECONDS__s steps(46, end) forwards;
+    height: 100%; width: 3%; border-radius: 999px;
+    background: linear-gradient(90deg, #0B5FD9, #3B82F6);
+    animation: fill __SECONDS__s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
   }
-  @keyframes fill { from { width: 4%; } to { width: 94%; } }
-  .tip { font-size: 9px; color: #5B6470; margin: 12px 0 0 0; line-height: 1.7; min-height: 30px; }
-  .tip::after { content: "_"; animation: blink 1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-  @media (prefers-reduced-motion: reduce) { .fill { animation-duration: 0.1s; } .tip::after { animation: none; } }
+  @keyframes fill { from { width: 3%; } to { width: 94%; } }
+  .tip { font-size: 13px; font-weight: 500; color: #5B6470; margin: 10px 0 0 0; min-height: 20px; }
+  .tip.swap { animation: rise 0.35s ease-out; }
+  @keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .fill, .tip.swap { animation-duration: 0.01s; } }
 </style>
 <div class="wrap">
   <p class="label">__LABEL__</p>
@@ -296,10 +335,13 @@ LOADER_HTML = """
 </div>
 <script>
   const tips = __TIPS__;
-  let order = tips.map((_, i) => i).sort(() => Math.random() - 0.5);
+  const order = tips.map((_, i) => i).sort(() => Math.random() - 0.5);
   let at = 0;
   const el = document.getElementById("tip");
-  function next() { el.textContent = tips[order[at % order.length]]; at += 1; }
+  function next() {
+    el.classList.remove("swap"); void el.offsetWidth;
+    el.textContent = tips[order[at % order.length]]; el.classList.add("swap"); at += 1;
+  }
   next();
   setInterval(next, 2600);
 </script>
@@ -308,13 +350,14 @@ LOADER_HTML = """
 
 def main() -> None:
     load_dotenv()
-    st.set_page_config(page_title="Trip agent", layout="wide")
+    st.set_page_config(page_title=PRODUCT, layout="wide")
     st.html(STYLE_BLOCK)
     if "tools" not in st.session_state:
         st.session_state["tools"] = build_tools()
     tools: Tools = st.session_state["tools"]
     slot = st.empty()  # the loading bar, at the top of the main column while a stage runs
     with st.sidebar:
+        brand(size=26)
         brief_form(tools, slot)
         state = current_state()
         if state is not None and state.report is None:
@@ -341,13 +384,20 @@ def loader(label: str, tips: list[str], seconds: int) -> None:
         .replace("__TIPS__", json.dumps(tips))
         .replace("__SECONDS__", str(seconds))
     )
-    components.html(body, height=120)
+    components.html(body, height=96)
+
+
+def brand(size: int = 26, extra_class: str = "") -> None:
+    st.markdown(
+        f'<div class="brand {extra_class}">{LOGO_SVG.format(size=size)}<span class="brand-name">{PRODUCT}</span></div>',
+        unsafe_allow_html=True,
+    )
 
 
 def hero() -> None:
+    brand(size=34, extra_class="hero-brand")
     st.markdown(
         '<div class="hero">'
-        '<p class="hero-kicker">Trip agent</p>'
         '<h1 class="hero-title">Where next?</h1>'
         '<p class="hero-tag">A plan built from what people posted this month, checked against real opening '
         "hours and travel times, booked only when you say so.</p>"
@@ -497,7 +547,13 @@ def brief_form(tools: Tools, slot: DeltaGenerator) -> None:
             step=10,
             help="Food, tickets and getting around, flights aside. Under 100 reads as low, over 250 as high.",
         )
-        styles = st.multiselect("Styles", STYLES, ["food", "art"])
+        styles = st.pills(
+            "Styles",
+            list(STYLES),
+            selection_mode="multi",
+            default=["food", "art"],
+            format_func=lambda style: f"{STYLES[style]} {style}",
+        )
         submitted = st.form_submit_button("Plan trip", type="primary", width="stretch")
     destination, destination_code = split_code(destination_pick or "")
     _, origin = split_code(origin_pick or "")
@@ -514,7 +570,7 @@ def brief_form(tools: Tools, slot: DeltaGenerator) -> None:
             end_date=end,
             travellers=int(travellers),
             budget_band=budget_band(int(budget)),
-            styles=styles,
+            styles=list(styles),
             answers={BUDGET_QUESTION: f"about {int(budget)} EUR per person per day, flights aside"},
         )
         state = TripState(brief=brief)
@@ -524,17 +580,6 @@ def brief_form(tools: Tools, slot: DeltaGenerator) -> None:
         slot.empty()
         st.session_state["state"] = state
         st.rerun()
-    tools_status()
-
-
-def tools_status() -> None:
-    chips = "".join(
-        f'<span class="tool-tag" data-on="{"1" if on else "0"}">{esc(name.lower())}</span>'
-        for name, on in active_flags().items()
-    )
-    if inject_booking_failure():
-        chips += '<span class="tool-tag" data-on="fail">failure injected</span>'
-    st.markdown(f'<div class="tool-row">{chips}</div>', unsafe_allow_html=True)
 
 
 def questions_form(state: TripState, tools: Tools, slot: DeltaGenerator) -> None:
@@ -589,8 +634,7 @@ def itinerary_view(state: TripState) -> None:
     for day in state.itinerary.days:
         rows = []
         for stop in day.stops:
-            reason = f' title="{esc(stop.failure_reason)}"' if stop.failure_reason else ""
-            status = esc(stop.status.value)
+            status = stop.status.value
             place = state.places.get(stop.place_id) if stop.place_id else None
             photo = (
                 f'<img src="{esc(place.photo_url)}" alt="{esc(stop.place_name)}" loading="lazy">'
@@ -603,9 +647,11 @@ def itinerary_view(state: TripState) -> None:
                 f"{photo_cell}"
                 f'<td class="stop-time">{stop.start:%H:%M}–{stop.end:%H:%M}</td>'
                 "<td>"
+                '<div class="stop-head">'
                 f'<span class="stop-place">{esc(stop.place_name)}</span>'
-                f'<span class="stop-cat">{esc(stop.category)}</span>'
-                f'<span class="stop-status" data-status="{status}"{reason}>{status}</span>'
+                f"{pill(stop.category, CATEGORY_ICONS.get(stop.category, 'location_on'))}"
+                f"{pill(status, STATUS_ICONS.get(status, 'circle'), status=status, title=stop.failure_reason)}"
+                "</div>"
                 f'<p class="stop-why">{esc(stop.why)}</p>'
                 "</td>"
                 "</tr>"
@@ -613,10 +659,16 @@ def itinerary_view(state: TripState) -> None:
         st.markdown(
             '<div class="day-block">'
             f'<div class="day-title">{day.date:%A} <small>{day.date:%d %B} · {len(day.stops)} stops</small></div>'
-            f'<table class="manifest"><tbody>{"".join(rows)}</tbody></table>'
+            f'<div class="manifest-wrap"><table class="manifest"><tbody>{"".join(rows)}</tbody></table></div>'
             "</div>",
             unsafe_allow_html=True,
         )
+
+
+def pill(label: str, icon: str, status: str | None = None, title: str | None = None) -> str:
+    """A chip shaped like the sidebar's style pills: a Material Symbols ligature, then the label."""
+    attrs = (f' data-status="{esc(status)}"' if status else "") + (f' title="{esc(title)}"' if title else "")
+    return f'<span class="pill"{attrs}><span class="ms">{esc(icon)}</span>{esc(label)}</span>'
 
 
 def draft_view(state: TripState) -> None:
