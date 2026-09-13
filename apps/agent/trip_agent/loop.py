@@ -19,6 +19,7 @@ from trip_core.models import (
     Replacement,
     Signal,
     StopStatus,
+    ToolError,
     TripBrief,
     TripState,
     VerificationReport,
@@ -73,9 +74,15 @@ def run(
 
 
 def stage_research(state: TripState, tools: Tools, log: CallLog) -> TripState:
+    """Every source runs; one that fails is noted in state.errors and the others still count."""
     signals: list[Signal] = []
     for source in tools.research:
-        signals.extend(log.call(f"research.{source.name}", source.search, state.brief))
+        try:
+            signals.extend(log.call(f"research.{source.name}", source.search, state.brief))
+        except ToolError as error:
+            state.errors.append(f"research.{source.name} failed: {error}")
+    if not signals:
+        raise ToolError("no research source answered; nothing to draft from")
     state.signals = dedupe(signals)
     return state
 

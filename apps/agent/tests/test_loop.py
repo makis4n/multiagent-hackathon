@@ -4,7 +4,7 @@ from pathlib import Path
 from trip_agent.log import CallLog
 from trip_agent.loop import Tools, run
 from trip_core.fakes import FakeSet, default_fakes
-from trip_core.models import BookingKind, StopStatus, TripBrief, idempotency_key, load_fixture
+from trip_core.models import BookingKind, Signal, StopStatus, ToolError, TripBrief, idempotency_key, load_fixture
 
 NOW = dt.datetime(2026, 9, 13, 12, 0, tzinfo=dt.UTC)
 
@@ -131,3 +131,33 @@ def test_injected_failure_recovers_with_one_order(tmp_path: Path, monkeypatch) -
 
     assert isinstance(tools.booking.inner, FakeBooking)
     assert len(tools.booking.inner.orders) == 2
+
+
+class BrokenSource:
+    name = "broken"
+
+    def search(self, brief: TripBrief) -> list[Signal]:
+        raise ToolError("reddit: 503 for the third time")
+
+
+def test_one_dead_source_does_not_kill_the_run(tmp_path: Path) -> None:
+    fakes = default_fakes()
+    tools = tools_from(fakes)
+    tools.research = [BrokenSource(), *fakes.research]
+    brief = load_fixture("tokyo").brief
+    log = CallLog(tmp_path / "calls.jsonl", brief.id)
+    state = run(brief, tools, log, confirm=lambda option: NOW)
+    assert len(state.signals) == 18
+    assert any(error.startswith("research.broken failed") for error in state.errors)
+    assert [e["ok"] for e in log.entries() if e["tool"] == "research.broken"] == [False]
+    assert state.report is not None and state.report.passed
+
+
+def test_no_source_at_all_fails_loudly(tmp_path: Path) -> None:
+    import pytest
+
+    tools = tools_from(default_fakes())
+    tools.research = [BrokenSource()]
+    brief = load_fixture("tokyo").brief
+    with pytest.raises(ToolError):
+        run(brief, tools, CallLog(tmp_path / "calls.jsonl", brief.id), confirm=lambda option: NOW)

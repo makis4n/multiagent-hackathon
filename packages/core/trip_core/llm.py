@@ -14,7 +14,7 @@ import time
 
 from google import genai
 from google.genai import errors, types
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from trip_core.models import RetryableError, ToolError
 
@@ -53,16 +53,29 @@ def complete_json[T: BaseModel](
     temperature: float = 0.2,
     attempts: int = 3,
 ) -> T:
-    """One structured call with short backoff on 429 and 5xx. RetryableError once `attempts` are spent,
-    ToolError on anything a retry will not fix."""
+    """One structured call: short backoff on 429 and 5xx, one corrective retry when the answer does not
+    match the schema. RetryableError once `attempts` are spent, ToolError on anything a retry will not fix."""
+    corrected = False
     for attempt in range(1, attempts + 1):
         try:
             return _complete_once(prompt, schema, model=model, system=system, temperature=temperature)
+        except SchemaError as error:
+            if corrected:
+                raise
+            corrected = True
+            prompt = (
+                f"{prompt}\n\nYour previous answer did not match the required schema: {error}\n"
+                "Return only JSON that matches it."
+            )
         except RetryableError:
             if attempt == attempts:
                 raise
             time.sleep(BACKOFF_SECONDS * attempt)
     raise AssertionError("unreachable")
+
+
+class SchemaError(ToolError):
+    """The model answered, but not in the shape asked for. One corrective retry, then it propagates."""
 
 
 def _complete_once[T: BaseModel](
@@ -86,5 +99,8 @@ def _complete_once[T: BaseModel](
         raise ToolError(f"gemini {error.code}: {error.message}") from error
     text = response.text
     if not text:
-        raise ToolError("gemini returned no text")
-    return schema.model_validate_json(text)
+        raise SchemaError("empty response")
+    try:
+        return schema.model_validate_json(text)
+    except ValidationError as error:
+        raise SchemaError(str(error)[:800]) from error

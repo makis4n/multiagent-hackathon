@@ -36,9 +36,9 @@ Each row names a test that plants the failure. A row without a test is a claim, 
 | planner.draft | invented venue | `exists` check | stop marked failed, one replacement pass | `test_verifier_flags_the_closed_venue` |
 | planner.draft | venue closed at the planned time | `open` check | replacement pass | `test_fixture_runs_end_to_end` |
 | planner.draft | stops too far apart | `reachable` check, 45 min cap | replacement pass | <C> |
-| research.* | source down or rate limited | `RetryableError` | other sources still run; draft proceeds with fewer signals | <B> |
+| research.* | source down or rate limited | `ToolError` from the source | the other sources still run, the failure is noted in the state, the draft proceeds with fewer signals; zero sources fails loudly | `test_one_dead_source_does_not_kill_the_run` |
 | gemini | 429/5xx, model overloaded | `RetryableError` inside `complete_json` | three attempts, 2s/4s backoff, then the stage fails loudly | `test_retries_a_busy_model_then_succeeds` |
-| gemini | malformed JSON | `ToolError` | <fallback> | <C> |
+| gemini | answer does not match the schema | `SchemaError` in `complete_json` | one corrective retry with the validation errors in the prompt, then it propagates | `test_malformed_answer_gets_one_corrective_retry` |
 
 ## 4. Eval results
 
