@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -16,12 +17,14 @@ from trip_core.models import (
     Signal,
     SignalSource,
     Stop,
+    ToolError,
     TripBrief,
 )
 from trip_itinerary.planner import MAX_PATCHES, GeminiPlanner, build_refine_prompt
 from trip_itinerary.schemas import PatchesResponse
 
 RECORDED = Path(__file__).parent / "recorded"
+PLANTED = "PLANTED-FAKE-TOKEN-abc123"
 
 ANSWERS = {
     "Do you want early starts, or should mornings stay slow?": "Slow mornings.",
@@ -230,8 +233,7 @@ def test_model_failure_returns_no_patches(monkeypatch: pytest.MonkeyPatch) -> No
     assert raiser.calls == 1
     assert patches == []
     assert given.model_dump() == before
-    assert any("RetryableError" in line for line in planner.last_dropped)
-    assert any("no patches" in line for line in planner.last_dropped)
+    assert planner.last_dropped == ["refine: no patches: the model call raised RetryableError"]
 
 
 def test_model_output_that_does_not_validate_returns_no_patches(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -244,7 +246,7 @@ def test_model_output_that_does_not_validate_returns_no_patches(monkeypatch: pyt
     patches = planner.refine(brief(), itinerary(), ANSWERS, signals())
 
     assert patches == []
-    assert any("ValidationError" in line for line in planner.last_dropped)
+    assert planner.last_dropped == ["refine: no patches: the model call raised ValidationError"]
 
 
 def test_a_mapping_drop_is_recorded(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -256,3 +258,19 @@ def test_a_mapping_drop_is_recorded(monkeypatch: pytest.MonkeyPatch) -> None:
     assert [patch.op for patch in patches] == ["remove"]
     assert any("unknown op" in line and "'delete'" in line for line in planner.last_dropped)
     assert all(line.startswith("model patch ") for line in planner.last_dropped)
+
+
+def test_the_log_never_carries_the_model_message(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Rule 12: the stack, not the message. A provider message can quote the model's own output."""
+    monkeypatch.setattr(llm, "complete_json", Raiser(ToolError(f"gemini 400: rejected {PLANTED}")))
+    planner = GeminiPlanner()
+
+    with caplog.at_level(logging.DEBUG, logger="trip_itinerary.planner"):
+        patches = planner.refine(brief(), itinerary(), ANSWERS, signals())
+
+    assert patches == []
+    assert PLANTED not in caplog.text
+    assert all(PLANTED not in line for line in planner.last_dropped)
+    assert "ToolError" in caplog.text

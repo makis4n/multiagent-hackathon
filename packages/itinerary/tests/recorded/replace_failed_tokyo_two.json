@@ -1,0 +1,32 @@
+{
+  "patches": [
+    {
+      "op": "replace",
+      "stop_id": "stop-01",
+      "stop": {
+        "id": "stop-01-r",
+        "day": 2,
+        "start": "08:00",
+        "end": "09:00",
+        "place_name": "Kiyosumi Teien",
+        "category": "nature",
+        "why": "A thread called the garden the calmest hour on this side of the river.",
+        "signal_ids": ["sig-1"]
+      }
+    },
+    {
+      "op": "replace",
+      "stop_id": "stop-04",
+      "stop": {
+        "id": "stop-04-r",
+        "day": 0,
+        "start": "18:00",
+        "end": "19:00",
+        "place_name": "Ameya Yokocho",
+        "category": "food",
+        "why": "A recent video called the arcade the best cheap lunch near Ueno.",
+        "signal_ids": ["sig-2"]
+      }
+    }
+  ]
+}

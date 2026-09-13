@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,7 @@ from trip_itinerary.planner import GeminiPlanner, build_questions_prompt
 from trip_itinerary.schemas import QuestionsResponse
 
 RECORDED = Path(__file__).parent / "recorded"
+PLANTED = "PLANTED-FAKE-TOKEN-abc123"
 
 EARLY_STARTS = "Do you want early starts, or should mornings stay slow?"
 FOOD_AVOIDED = "Any food you avoid, so the Tsukiji and izakaya stops can be swapped?"
@@ -148,8 +150,7 @@ def test_model_failure_returns_no_questions(monkeypatch: pytest.MonkeyPatch) -> 
 
     assert calls == 1
     assert asked == []
-    assert any("ToolError" in line for line in planner.last_dropped)
-    assert any("no questions" in line for line in planner.last_dropped)
+    assert planner.last_dropped == ["questions: no questions: the model call raised ToolError"]
 
 
 def test_model_output_that_does_not_validate_returns_no_questions(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -162,4 +163,39 @@ def test_model_output_that_does_not_validate_returns_no_questions(monkeypatch: p
     asked = planner.questions(brief(), itinerary())
 
     assert asked == []
-    assert any("ValidationError" in line for line in planner.last_dropped)
+    assert planner.last_dropped == ["questions: no questions: the model call raised ValidationError"]
+
+
+def test_last_dropped_resets_between_calls(monkeypatch: pytest.MonkeyPatch) -> None:
+    def raiser(prompt: str, schema: type[BaseModel], **kwargs: Any) -> BaseModel:
+        raise ToolError("gemini 400: bad request")
+
+    monkeypatch.setattr(llm, "complete_json", raiser)
+    planner = GeminiPlanner()
+    planner.questions(brief(), itinerary())
+    assert planner.last_dropped
+
+    install(monkeypatch, "questions_tokyo_seven.json")
+    planner.questions(brief(), itinerary())
+
+    assert planner.last_dropped == []
+
+
+def test_the_log_never_carries_the_model_message(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Rule 12: the stack, not the message. A provider message can quote the model's own output."""
+
+    def raiser(prompt: str, schema: type[BaseModel], **kwargs: Any) -> BaseModel:
+        raise ToolError(f"gemini 400: rejected {PLANTED}")
+
+    monkeypatch.setattr(llm, "complete_json", raiser)
+    planner = GeminiPlanner()
+
+    with caplog.at_level(logging.DEBUG, logger="trip_itinerary.planner"):
+        asked = planner.questions(brief(), itinerary())
+
+    assert asked == []
+    assert PLANTED not in caplog.text
+    assert all(PLANTED not in line for line in planner.last_dropped)
+    assert "ToolError" in caplog.text

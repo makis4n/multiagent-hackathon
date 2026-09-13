@@ -19,6 +19,7 @@ from trip_core.models import (
     Signal,
     ToolError,
     TripBrief,
+    VerificationReport,
     apply_patch,
 )
 from trip_itinerary.schemas import PatchesResponse, QuestionsResponse, to_patches
@@ -26,6 +27,7 @@ from trip_itinerary.schemas import PatchesResponse, QuestionsResponse, to_patche
 log = logging.getLogger(__name__)
 
 MAX_PATCHES = 8
+SKIP_PREFIX = "skip:"
 MODEL_FAILURES = (RetryableError, ToolError, ValidationError)
 
 QUESTIONS_SYSTEM = (
@@ -85,6 +87,42 @@ Rules for each patch:
 
 Return only the patches."""
 
+REPLACE_SYSTEM = (
+    "You repair one trip plan. A few stops failed a check and only those stops may change. "
+    "You answer with patches to that plan and never with a new plan."
+)
+
+REPLACE_PROMPT = """Here is the trip, the plan the traveller has already seen, and the stops that failed a check.
+
+{brief}
+
+Plan so far:
+{itinerary}
+
+Stops that failed, and why:
+{failures}
+
+What the traveller told us:
+{answered}
+
+Signals you may cite, by id:
+{signals}
+
+Places you may not use, because they are already in the plan or the traveller asked to skip them:
+{forbidden}
+
+Write exactly one patch for each failed stop above, and touch no other stop.
+Rules for each patch:
+- op is replace when a different place fits the same slot, otherwise remove
+- stop_id is the failed stop
+- replace carries a full stop with a new id, a category, one sentence of why, and a place from the signals
+- never name a place from the list you may not use, and never the same new place twice
+- keep the day and the times of the stop you replace
+- signal_ids come from the list above; never invent one
+- times are HH:MM on a 24 hour clock
+
+Return only the patches."""
+
 
 def summarise_brief(brief: TripBrief) -> str:
     """A compact, stable view of the brief for a prompt. Pure."""
@@ -139,6 +177,41 @@ def summarise_signals(signals: list[Signal]) -> str:
     return "\n".join(lines)
 
 
+def skipped_places(brief: TripBrief) -> set[str]:
+    """Answers shaped `skip: <place>` name places the traveller does not want. Folded for comparison. Pure."""
+    return {
+        answer.strip()[len(SKIP_PREFIX) :].strip().casefold()
+        for answer in brief.answers.values()
+        if answer.strip().casefold().startswith(SKIP_PREFIX)
+    }
+
+
+def summarise_failures(itinerary: Itinerary, report: VerificationReport) -> str:
+    """One line per failed stop, with the checks it failed. Pure."""
+    failed = report.failed_stop_ids()
+    if not failed:
+        return "none"
+    stops = {stop.id: stop for stop in itinerary.stops()}
+    lines: list[str] = []
+    for stop_id in failed:
+        stop = stops.get(stop_id)
+        where = f"{stop.place_name} {stop.start:%H:%M} to {stop.end:%H:%M}" if stop else "no longer in the plan"
+        reasons = [
+            f"{check.check.value}{f' ({check.detail})' if check.detail else ''}"
+            for check in report.checks
+            if check.stop_id == stop_id and not check.ok
+        ]
+        lines.append(f"- {stop_id} {where}: failed {', '.join(reasons)}")
+    return "\n".join(lines)
+
+
+def summarise_forbidden(brief: TripBrief, itinerary: Itinerary) -> str:
+    """Every place already in the plan, plus every place an answer skipped. Pure."""
+    names = [stop.place_name for stop in itinerary.stops()]
+    names += sorted(skipped_places(brief))
+    return "\n".join(f"- {name}" for name in names) if names else "none"
+
+
 def build_questions_prompt(brief: TripBrief, itinerary: Itinerary) -> str:
     """Pure. The exact prompt `questions` sends."""
     return QUESTIONS_PROMPT.format(
@@ -161,13 +234,27 @@ def build_refine_prompt(brief: TripBrief, itinerary: Itinerary, answers: dict[st
     )
 
 
+def build_replace_failed_prompt(
+    brief: TripBrief, itinerary: Itinerary, report: VerificationReport, signals: list[Signal]
+) -> str:
+    """Pure. The exact prompt `replace_failed` sends."""
+    return REPLACE_PROMPT.format(
+        brief=summarise_brief(brief),
+        itinerary=summarise_itinerary(itinerary),
+        failures=summarise_failures(itinerary, report),
+        answered=summarise_answers(brief),
+        signals=summarise_signals(signals),
+        forbidden=summarise_forbidden(brief, itinerary),
+    )
+
+
 def _key(text: str) -> str:
     """Whitespace and case folded away, so a near-repeat of an answered question still counts as the same one."""
     return " ".join(text.split()).casefold()
 
 
 class GeminiPlanner:
-    """Lane C's real `ItineraryPlanner`. `questions` and `refine` are model-backed so far."""
+    """Lane C's real `ItineraryPlanner`. `questions`, `refine` and `replace_failed` are model-backed so far."""
 
     def __init__(self, *, temperature: float = 0.3) -> None:
         self.temperature = temperature
@@ -185,7 +272,7 @@ class GeminiPlanner:
                 temperature=self.temperature,
             )
         except MODEL_FAILURES as error:
-            log.exception("questions: the model call failed")
+            log.error("questions: the model call failed with %s", type(error).__name__, stack_info=True)
             self.last_dropped.append(f"questions: no questions: the model call raised {type(error).__name__}")
             return []
         return self._select(response.questions, brief)
@@ -222,12 +309,80 @@ class GeminiPlanner:
                 temperature=self.temperature,
             )
         except MODEL_FAILURES as error:
-            log.exception("refine: the model call failed")
+            log.error("refine: the model call failed with %s", type(error).__name__, stack_info=True)
             self.last_dropped.append(f"refine: no patches: the model call raised {type(error).__name__}")
             return []
         mapped = to_patches(response, itinerary, [signal.id for signal in signals])
         self.last_dropped.extend(mapped.dropped)
         return self._applicable(itinerary, mapped.patches)
+
+    def replace_failed(
+        self, brief: TripBrief, itinerary: Itinerary, report: VerificationReport, signals: list[Signal]
+    ) -> list[ItineraryPatch]:
+        """Exactly one patch per failed stop and no other stop touched: a replace in the same slot, or a remove.
+
+        A model failure degrades to no patches, so the run carries on with the itinerary it already had.
+        """
+        self.last_dropped = []
+        failed = report.failed_stop_ids()
+        if not failed:
+            return []
+        try:
+            response = llm.complete_json(
+                build_replace_failed_prompt(brief, itinerary, report, signals),
+                PatchesResponse,
+                model=llm.model_main(),
+                system=REPLACE_SYSTEM,
+                temperature=self.temperature,
+            )
+        except MODEL_FAILURES as error:
+            log.error("replace_failed: the model call failed with %s", type(error).__name__, stack_info=True)
+            self.last_dropped.append(f"replace_failed: no patches: the model call raised {type(error).__name__}")
+            return []
+        mapped = to_patches(response, itinerary, [signal.id for signal in signals])
+        self.last_dropped.extend(mapped.dropped)
+        return self._applicable(itinerary, self._one_per_failure(brief, itinerary, failed, mapped.patches))
+
+    def _one_per_failure(
+        self, brief: TripBrief, itinerary: Itinerary, failed: list[str], candidates: list[ItineraryPatch]
+    ) -> list[ItineraryPatch]:
+        """The model proposes; this picks one patch per failed stop and nothing else."""
+        wanted = set(failed)
+        proposed: dict[str, ItineraryPatch] = {}
+        for index, patch in enumerate(candidates):
+            stop_id = patch.stop_id
+            if stop_id is None or stop_id not in wanted:
+                self.last_dropped.append(f"failed-stop patch {index}: names no failed stop: {stop_id!r}")
+            elif stop_id in proposed:
+                self.last_dropped.append(f"failed-stop patch {index}: a second patch for {stop_id}, kept the first")
+            else:
+                proposed[stop_id] = patch
+        taken = {stop.place_name.strip().casefold() for stop in itinerary.stops()} | skipped_places(brief)
+        return [self._one_replacement(itinerary, stop_id, proposed.get(stop_id), taken) for stop_id in failed]
+
+    def _one_replacement(
+        self, itinerary: Itinerary, stop_id: str, patch: ItineraryPatch | None, taken: set[str]
+    ) -> ItineraryPatch:
+        removed = ItineraryPatch(op="remove", stop_id=stop_id)
+        if patch is None:
+            self.last_dropped.append(f"failed stop {stop_id}: the model proposed nothing, removed instead")
+            return removed
+        if patch.op == "remove":
+            return removed
+        if patch.op != "replace" or patch.stop is None:
+            self.last_dropped.append(f"failed stop {stop_id}: op {patch.op!r} is not a replace, removed instead")
+            return removed
+        name = patch.stop.place_name.strip()
+        if not name or name.casefold() in taken:
+            self.last_dropped.append(
+                f"failed stop {stop_id}: {name!r} is already in the plan or skipped, removed instead"
+            )
+            return removed
+        taken.add(name.casefold())
+        day_index, stop_index = itinerary.locate(stop_id)
+        old = itinerary.days[day_index].stops[stop_index]
+        keep = patch.stop.model_copy(update={"day": day_index, "start": old.start, "end": old.end})
+        return ItineraryPatch(op="replace", stop_id=stop_id, stop=keep)
 
     def _applicable(self, itinerary: Itinerary, candidates: list[ItineraryPatch]) -> list[ItineraryPatch]:
         """In order, onto an accumulating copy: a later patch may legitimately depend on an earlier one.
