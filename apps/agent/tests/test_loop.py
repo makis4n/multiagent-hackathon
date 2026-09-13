@@ -4,7 +4,7 @@ from pathlib import Path
 from trip_agent.log import CallLog
 from trip_agent.loop import Tools, run
 from trip_core.fakes import FakeSet, default_fakes
-from trip_core.models import BookingKind, StopStatus, TripBrief, idempotency_key, load_fixture
+from trip_core.models import BookingKind, Signal, StopStatus, ToolError, TripBrief, idempotency_key, load_fixture
 
 NOW = dt.datetime(2026, 9, 13, 12, 0, tzinfo=dt.UTC)
 
@@ -32,6 +32,9 @@ def test_fixture_runs_end_to_end(tmp_path: Path) -> None:
     assert all(stop.status == StopStatus.verified for stop in stops)
     assert not any("(closed)" in stop.place_name for stop in stops)
     assert "Shibuya Sky" not in [stop.place_name for stop in stops]
+    assert len(state.replacements) == 1
+    swap = state.replacements[0]
+    assert "(closed)" in swap.old.place_name and swap.new is not None and swap.reason.startswith("open:")
     assert [order.option.kind for order in state.orders] == [BookingKind.flight, BookingKind.stay]
     assert all(order.confirmed_by_user_at == NOW for order in state.orders)
     assert state.calendar_url
@@ -91,3 +94,115 @@ def test_ask_fills_answers_and_patches(tmp_path: Path) -> None:
     assert state.itinerary is not None
     assert "Lisbon Central Market" not in [stop.place_name for stop in state.itinerary.stops()]
     assert state.report is not None and state.report.passed
+
+
+def test_stages_match_run(tmp_path: Path) -> None:
+    from trip_agent.loop import stage_calendar, stage_draft, stage_refine, stage_research, stage_verify
+    from trip_core.models import TripState
+
+    brief = load_fixture("tokyo").brief
+    staged = TripState(brief=brief)
+    log = CallLog(tmp_path / "staged.jsonl", brief.id)
+    tools = tools_from(default_fakes())
+    staged = stage_draft(stage_research(staged, tools, log), tools, log)
+    assert staged.report is None and staged.itinerary is not None and len(staged.questions) == 3
+    staged = stage_calendar(stage_verify(stage_refine(staged, tools, log, {}), tools, log), tools, log)
+    whole = run(brief, tools_from(default_fakes()), CallLog(tmp_path / "run.jsonl", brief.id), confirm=lambda o: None)
+    assert staged.itinerary is not None and whole.itinerary is not None
+    assert [s.place_name for s in staged.itinerary.stops()] == [s.place_name for s in whole.itinerary.stops()]
+    assert staged.calendar_url == whole.calendar_url
+
+
+def test_injected_failure_recovers_with_one_order(tmp_path: Path, monkeypatch) -> None:
+    from trip_agent.registry import FailOnce, build_tools
+
+    monkeypatch.setenv("INJECT_BOOKING_FAILURE", "1")
+    for flag in ("RESEARCH", "PLACES", "PLANNER", "VERIFIER", "BOOKING", "CALENDAR"):
+        monkeypatch.delenv(f"REAL_{flag}", raising=False)
+    tools = build_tools()
+    assert isinstance(tools.booking, FailOnce)
+    brief = load_fixture("tokyo").brief
+    log = CallLog(tmp_path / "calls.jsonl", brief.id)
+    state = run(brief, tools, log, confirm=lambda option: NOW)
+    assert [order.option.kind for order in state.orders] == [BookingKind.flight, BookingKind.stay]
+    attempts = [(e["attempt"], e["ok"]) for e in log.entries() if e["tool"] == "booking.order.flight"]
+    assert attempts == [(1, False), (2, True)]
+    from trip_core.fakes import FakeBooking
+
+    assert isinstance(tools.booking.inner, FakeBooking)
+    assert len(tools.booking.inner.orders) == 2
+
+
+class BrokenSource:
+    name = "broken"
+
+    def search(self, brief: TripBrief) -> list[Signal]:
+        raise ToolError("reddit: 503 for the third time")
+
+
+def test_one_dead_source_does_not_kill_the_run(tmp_path: Path) -> None:
+    fakes = default_fakes()
+    tools = tools_from(fakes)
+    tools.research = [BrokenSource(), *fakes.research]
+    brief = load_fixture("tokyo").brief
+    log = CallLog(tmp_path / "calls.jsonl", brief.id)
+    state = run(brief, tools, log, confirm=lambda option: NOW)
+    assert len(state.signals) == 18
+    assert any(error.startswith("research.broken failed") for error in state.errors)
+    assert [e["ok"] for e in log.entries() if e["tool"] == "research.broken"] == [False]
+    assert state.report is not None and state.report.passed
+
+
+def test_no_source_at_all_fails_loudly(tmp_path: Path) -> None:
+    import pytest
+
+    tools = tools_from(default_fakes())
+    tools.research = [BrokenSource()]
+    brief = load_fixture("tokyo").brief
+    with pytest.raises(ToolError):
+        run(brief, tools, CallLog(tmp_path / "calls.jsonl", brief.id), confirm=lambda option: NOW)
+
+
+def test_stops_that_keep_failing_are_pruned_and_recorded(tmp_path: Path) -> None:
+    from trip_core.models import Check, CheckKind, Itinerary, VerificationReport
+
+    class AlwaysFailsKoenji:
+        def verify(self, itinerary: Itinerary) -> VerificationReport:
+            checks = [
+                Check(stop_id=stop.id, check=CheckKind.exists, ok="Koenji" not in stop.place_name, detail="test")
+                for stop in itinerary.stops()
+            ]
+            return VerificationReport(itinerary_id=itinerary.id, checks=checks)
+
+    fakes = default_fakes()
+    tools = tools_from(fakes)
+    tools.verifier = AlwaysFailsKoenji()
+    brief = load_fixture("tokyo").brief
+    state = run(brief, tools, CallLog(tmp_path / "calls.jsonl", brief.id), confirm=lambda option: None)
+    assert state.report is not None and state.report.passed
+    assert state.itinerary is not None
+    assert not any("Koenji" in stop.place_name for stop in state.itinerary.stops())
+    assert any(swap.old.place_name == "Koenji" for swap in state.replacements)
+
+
+def test_prune_repeats_when_a_removal_creates_a_new_failing_leg(tmp_path: Path) -> None:
+    """A verifier that rejects whichever stop follows Tsukiji: removing it makes the next one follow Tsukiji."""
+    from trip_core.models import Check, CheckKind, Itinerary, VerificationReport
+
+    class RejectsWhateverFollowsTsukiji:
+        def verify(self, itinerary: Itinerary) -> VerificationReport:
+            checks = []
+            for day in itinerary.days:
+                for index, stop in enumerate(day.stops):
+                    after_tsukiji = index > 0 and "Tsukiji" in day.stops[index - 1].place_name
+                    checks.append(Check(stop_id=stop.id, check=CheckKind.reachable, ok=not after_tsukiji))
+            return VerificationReport(itinerary_id=itinerary.id, checks=checks)
+
+    fakes = default_fakes()
+    tools = tools_from(fakes)
+    tools.verifier = RejectsWhateverFollowsTsukiji()
+    brief = load_fixture("tokyo").brief
+    state = run(brief, tools, CallLog(tmp_path / "calls.jsonl", brief.id), confirm=lambda option: None)
+    assert state.report is not None and state.report.passed
+    assert state.itinerary is not None and len(state.itinerary.days[0].stops) == 1
+    assert len(state.replacements) >= 3

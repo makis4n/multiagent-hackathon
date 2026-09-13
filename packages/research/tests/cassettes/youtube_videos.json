@@ -1,0 +1,31 @@
+{
+  "kind": "youtube#videoListResponse",
+  "items": [
+    {
+      "kind": "youtube#video",
+      "id": "vidAAA",
+      "statistics": {
+        "viewCount": "412000",
+        "likeCount": "18400",
+        "commentCount": "920"
+      }
+    },
+    {
+      "kind": "youtube#video",
+      "id": "vidBBB",
+      "statistics": {
+        "viewCount": "88000",
+        "likeCount": "3100",
+        "commentCount": "210"
+      }
+    },
+    {
+      "kind": "youtube#video",
+      "id": "vidCCC",
+      "statistics": {
+        "viewCount": "50000",
+        "commentCount": "40"
+      }
+    }
+  ]
+}

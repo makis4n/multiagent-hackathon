@@ -1,0 +1,41 @@
+{
+  "requestId": "req_stand_in",
+  "searchTime": 412.7,
+  "costDollars": {
+    "total": 0.005
+  },
+  "results": [
+    {
+      "id": "https://www.reddit.com/r/JapanTravel/comments/aa1/tsukiji/",
+      "title": "Tsukiji Outer Market at 7am is still the move",
+      "url": "https://www.reddit.com/r/JapanTravel/comments/aa1/tsukiji/",
+      "publishedDate": "2026-08-30T09:12:00.000Z",
+      "author": null,
+      "text": "Tamagoyaki stand had no queue before 8. Skip the tuna auction hype."
+    },
+    {
+      "id": "https://www.reddit.com/r/Tokyo/comments/aa2/nezu/",
+      "title": "Nezu Museum garden is the best 1500 yen in Aoyama",
+      "url": "https://www.reddit.com/r/Tokyo/comments/aa2/nezu/",
+      "publishedDate": "2026-06-11T14:00:00.000Z",
+      "author": null,
+      "text": "Nezu Museum garden. Bamboo path out the back. Closed Mondays."
+    },
+    {
+      "id": "https://www.timeout.com/tokyo/best-things-to-do",
+      "title": "Omoide Yokocho and Golden Gai after dark",
+      "url": "https://www.timeout.com/tokyo/best-things-to-do",
+      "publishedDate": null,
+      "author": "Time Out",
+      "text": "Omoide Yokocho without the tourist markup, then Golden Gai."
+    },
+    {
+      "id": "no-url-result",
+      "title": "Broken result with no url",
+      "url": null,
+      "publishedDate": "2026-05-01T00:00:00.000Z",
+      "author": null,
+      "text": ""
+    }
+  ]
+}

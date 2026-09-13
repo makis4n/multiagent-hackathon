@@ -1,9 +1,10 @@
 # trip-booking
 
-Status: **unclaimed**. Claim it by putting your name on this line in your first commit.
+Status: **KieronOei** (D1 search), **Wai Kin** (D2 order, D4 recovery). D3 cut.
 
-Lane D. Duffel test mode for flights and stays, Viator or Amadeus for activity search. Implement
-`build_provider()` in `trip_booking/__init__.py`; `REAL_BOOKING=1` selects it.
+Lane D. Duffel test mode for flights; stays and activities return no options. `build_provider()` in
+`trip_booking/__init__.py`; `REAL_BOOKING=1` selects it. Orders are remembered by idempotency key in
+`ORDER_STORE` (default `logs/orders.json`, gitignored); a retry finds them there, then in Duffel's own order list.
 
 Non-negotiable, and each one has a test in `trip_core/tests/test_fakes.py` to copy:
 

@@ -1,0 +1,22 @@
+{
+  "data": {
+    "id": "ord_0000BANOBqZ3x8Lk2cPaVe",
+    "live_mode": false,
+    "booking_reference": "ZZ7K4Q",
+    "offer_id": "off_0000BANOAje5JcTNm4kaN7",
+    "total_amount": "977.28",
+    "total_currency": "EUR",
+    "base_amount": "706.67",
+    "tax_amount": "270.61",
+    "created_at": "2026-09-13T20:01:12.417021Z",
+    "metadata": {
+      "idempotency_key": "REPLACED_BY_TEST",
+      "brief_id": "tokyo"
+    },
+    "owner": {"iata_code": "TG", "name": "Thai Airways"},
+    "passengers": [
+      {"id": "pas_0000BANOAayfXiagtJJOha", "given_name": "Ada", "family_name": "Traveller", "type": "adult"}
+    ],
+    "payment_status": {"paid_at": "2026-09-13T20:01:12.417021Z", "awaiting_payment": false}
+  }
+}

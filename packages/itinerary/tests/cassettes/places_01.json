@@ -1,0 +1,119 @@
+{
+  "json": {
+    "places": [
+      {
+        "displayName": {
+          "languageCode": "en",
+          "text": "Mori Art Museum"
+        },
+        "formattedAddress": "Japan, \u3012106-6150 Tokyo, Minato City, Roppongi, 6-ch\u014dme\u221210\u2212\uff11 Roppongi Hills Mori Tower, 53\u968e",
+        "id": "ChIJg5RCD3eLGGAR6dbIHRM98w8",
+        "location": {
+          "latitude": 35.6604621,
+          "longitude": 139.7292785
+        },
+        "rating": 4.3,
+        "regularOpeningHours": {
+          "nextOpenTime": "2026-09-14T01:00:00Z",
+          "openNow": false,
+          "periods": [
+            {
+              "close": {
+                "day": 0,
+                "hour": 22,
+                "minute": 0
+              },
+              "open": {
+                "day": 0,
+                "hour": 10,
+                "minute": 0
+              }
+            },
+            {
+              "close": {
+                "day": 1,
+                "hour": 22,
+                "minute": 0
+              },
+              "open": {
+                "day": 1,
+                "hour": 10,
+                "minute": 0
+              }
+            },
+            {
+              "close": {
+                "day": 2,
+                "hour": 17,
+                "minute": 0
+              },
+              "open": {
+                "day": 2,
+                "hour": 10,
+                "minute": 0
+              }
+            },
+            {
+              "close": {
+                "day": 3,
+                "hour": 22,
+                "minute": 0
+              },
+              "open": {
+                "day": 3,
+                "hour": 10,
+                "minute": 0
+              }
+            },
+            {
+              "close": {
+                "day": 4,
+                "hour": 22,
+                "minute": 0
+              },
+              "open": {
+                "day": 4,
+                "hour": 10,
+                "minute": 0
+              }
+            },
+            {
+              "close": {
+                "day": 5,
+                "hour": 22,
+                "minute": 0
+              },
+              "open": {
+                "day": 5,
+                "hour": 10,
+                "minute": 0
+              }
+            },
+            {
+              "close": {
+                "day": 6,
+                "hour": 22,
+                "minute": 0
+              },
+              "open": {
+                "day": 6,
+                "hour": 10,
+                "minute": 0
+              }
+            }
+          ],
+          "weekdayDescriptions": [
+            "Monday: 10:00\u202fAM\u2009\u2013\u200910:00\u202fPM",
+            "Tuesday: 10:00\u202fAM\u2009\u2013\u20095:00\u202fPM",
+            "Wednesday: 10:00\u202fAM\u2009\u2013\u200910:00\u202fPM",
+            "Thursday: 10:00\u202fAM\u2009\u2013\u200910:00\u202fPM",
+            "Friday: 10:00\u202fAM\u2009\u2013\u200910:00\u202fPM",
+            "Saturday: 10:00\u202fAM\u2009\u2013\u200910:00\u202fPM",
+            "Sunday: 10:00\u202fAM\u2009\u2013\u200910:00\u202fPM"
+          ]
+        }
+      }
+    ]
+  },
+  "status": 200
+}

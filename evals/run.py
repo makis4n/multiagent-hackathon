@@ -13,6 +13,7 @@ import traceback
 from collections.abc import Callable
 from pathlib import Path
 
+import httpx
 from dotenv import load_dotenv
 
 from trip_agent.log import CallLog
@@ -23,6 +24,8 @@ from trip_core.models import MAX_TRANSIT_MINUTES, BookingKind, CheckKind, TripBr
 ROOT = Path(__file__).resolve().parent
 TRIPS = ROOT / "trips"
 RESULTS = ROOT / "results"
+URL_SAMPLE = 10
+MAX_DEAD_URLS = 1  # real web content rots; one dead link in ten is noise, more is a source problem
 
 Verdict = tuple[bool, str]
 
@@ -30,7 +33,25 @@ Verdict = tuple[bool, str]
 def check_signals(state: TripState) -> Verdict:
     places = {place for signal in state.signals for place in signal.places_mentioned}
     ok = len(state.signals) >= 15 and len(places) >= 10
-    return ok, f"{len(state.signals)} signals, {len(places)} places"
+    detail = f"{len(state.signals)} signals, {len(places)} places"
+    if active_flags()["RESEARCH"]:
+        dead = dead_urls([signal.url for signal in state.signals[:URL_SAMPLE]])
+        ok = ok and len(dead) <= MAX_DEAD_URLS
+        detail += f", {len(dead)} dead of {min(len(state.signals), URL_SAMPLE)} URLs checked"
+    return ok, detail
+
+
+def dead_urls(urls: list[str]) -> list[str]:
+    """URLs that do not answer 2xx or 3xx within 5 seconds. Only meaningful for real research."""
+    dead: list[str] = []
+    with httpx.Client(timeout=5.0, follow_redirects=True, headers={"User-Agent": "trip-agent-evals/0.1"}) as client:
+        for url in urls:
+            try:
+                if client.get(url).status_code >= 400:
+                    dead.append(url)
+            except httpx.HTTPError:
+                dead.append(url)
+    return dead
 
 
 def check_resolved(state: TripState) -> Verdict:
@@ -54,8 +75,9 @@ def check_transit(state: TripState) -> Verdict:
 
 
 def check_bookable(state: TripState) -> Verdict:
+    """Flights only: Duffel Stays needs a commercial agreement, so stays exist on the fake provider alone."""
     kinds = {option.kind for option in state.options}
-    return {BookingKind.flight, BookingKind.stay} <= kinds, ", ".join(sorted(kind.value for kind in kinds)) or "none"
+    return BookingKind.flight in kinds, ", ".join(sorted(kind.value for kind in kinds)) or "none"
 
 
 def check_gated(state: TripState) -> Verdict:

@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 
 from trip_agent.log import CallLog
 from trip_agent.loop import run
-from trip_agent.registry import active_flags, build_tools
+from trip_agent.registry import active_flags, build_tools, inject_booking_failure
 from trip_core.models import BookingOption, TripBrief, TripState, load_fixture
 
 
@@ -88,7 +88,10 @@ def summary(state: TripState, log: CallLog) -> str:
         lines.append(f"note: {error}")
     lines.append(f"calendar: {state.calendar_url}")
     real = [name.lower() for name, on in active_flags().items() if on]
-    lines.append(f"real tools: {', '.join(real) or 'none (all fakes)'}; {len(log.entries())} calls in {log.path}")
+    injected = "; booking failure injected" if inject_booking_failure() else ""
+    lines.append(
+        f"real tools: {', '.join(real) or 'none (all fakes)'}{injected}; {len(log.entries())} calls in {log.path}"
+    )
     return "\n".join(lines)
 
 

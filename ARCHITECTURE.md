@@ -38,9 +38,10 @@ and the tests in `packages/core/tests/test_fakes.py` prove them.
 
 ## Model
 
-Gemini through `trip_core.llm.complete_json(prompt, Schema)`: JSON mode with a flat pydantic response schema.
-`GEMINI_MODEL_MAIN` (default gemini-2.5-pro) for drafting and refinement, `GEMINI_MODEL_FAST` (default
-gemini-2.5-flash) for scoring and extraction. Transport and rate-limit failures surface as `RetryableError`.
+Claude through `trip_core.llm.complete_json(prompt, Schema)`: the flat pydantic response schema is a forced tool
+call, so the answer is its input. `ANTHROPIC_MODEL_MAIN` (default claude-sonnet-5) for drafting and replacements,
+`ANTHROPIC_MODEL_FAST` (default claude-haiku-4-5-20251001) for questions and extraction. `LLM_PROVIDER=gemini`
+swaps in Gemini with the same wrapper contract. Transport and rate-limit failures surface as `RetryableError`.
 
 ## Evals
 

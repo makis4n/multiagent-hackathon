@@ -1,0 +1,1236 @@
+{
+  "data": {
+    "airline_credit_ids": [],
+    "offers": [
+      {
+        "created_at": "2026-09-13T19:43:17.035225Z",
+        "updated_at": "2026-09-13T19:43:17.035225Z",
+        "id": "off_0000BANOAje5JcTNm4kaN7",
+        "live_mode": false,
+        "expires_at": "2026-09-13T20:43:17.019754Z",
+        "supported_loyalty_programmes": [
+          "AC",
+          "NZ",
+          "NH",
+          "OZ",
+          "CM",
+          "MS",
+          "AI",
+          "OU",
+          "BR",
+          "SQ",
+          "AV",
+          "UA",
+          "A3",
+          "LH",
+          "TK",
+          "CA",
+          "TG",
+          "ET",
+          "TP",
+          "SA"
+        ],
+        "base_amount": "706.67",
+        "intended_base_amount": "706.67",
+        "base_currency": "EUR",
+        "tax_amount": "270.61",
+        "tax_currency": "EUR",
+        "total_amount": "977.28",
+        "intended_total_amount": "977.28",
+        "total_currency": "EUR",
+        "total_emissions_kg": "1000",
+        "passenger_identity_documents_required": false,
+        "supported_passenger_identity_document_types": [
+          "known_traveler_number",
+          "passenger_redress_number",
+          "passport"
+        ],
+        "partial": false,
+        "private_fares": [],
+        "conditions": {
+          "change_before_departure": null,
+          "refund_before_departure": null
+        },
+        "owner": {
+          "conditions_of_carriage_url": "https://www.thaiairways.com/en_GB/Terms_condition/contract_of_carriage.page?",
+          "iata_code": "TG",
+          "id": "arl_00009VME7DDoV8ZkzmMkZj",
+          "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/TG.svg",
+          "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/TG.svg",
+          "name": "Thai Airways"
+        },
+        "slices": [
+          {
+            "id": "sli_0000BANOAje5JcTNm4kaMy",
+            "duration": "P1DT10H5M",
+            "destination_type": "airport",
+            "origin_type": "airport",
+            "fare_brand_name": "Flexi",
+            "ngs_shelf": 2,
+            "conditions": {
+              "change_before_departure": null,
+              "advance_seat_selection": true,
+              "priority_boarding": null,
+              "priority_check_in": null
+            },
+            "comparison_key": "AQ8D6w==",
+            "origin": {
+              "iata_code": "ARN",
+              "iata_country_code": "SE",
+              "id": "arp_arn_se",
+              "name": "Stockholm-Arlanda Airport",
+              "latitude": 59.650831,
+              "longitude": 17.92119,
+              "icao_code": "ESSA",
+              "time_zone": "Europe/Stockholm",
+              "city_name": "Stockholm",
+              "iata_city_code": "STO",
+              "type": "airport",
+              "city": {
+                "iata_code": "STO",
+                "iata_country_code": "SE",
+                "id": "cit_sto_se",
+                "name": "Stockholm",
+                "latitude": null,
+                "longitude": null,
+                "icao_code": null,
+                "time_zone": null,
+                "city_name": null,
+                "iata_city_code": "STO",
+                "type": "city"
+              }
+            },
+            "destination": {
+              "iata_code": "HND",
+              "iata_country_code": "JP",
+              "id": "arp_hnd_jp",
+              "name": "Haneda Airport",
+              "latitude": 35.550846,
+              "longitude": 139.779919,
+              "icao_code": "RJTT",
+              "time_zone": "Asia/Tokyo",
+              "city_name": "Tokyo",
+              "iata_city_code": "TYO",
+              "type": "airport",
+              "city": {
+                "iata_code": "TYO",
+                "iata_country_code": "JP",
+                "id": "cit_tyo_jp",
+                "name": "Tokyo",
+                "latitude": null,
+                "longitude": null,
+                "icao_code": null,
+                "time_zone": null,
+                "city_name": null,
+                "iata_city_code": "TYO",
+                "type": "city"
+              }
+            },
+            "segments": [
+              {
+                "id": "seg_0000BANOAje5JcTNm4kaMp",
+                "arriving_at": "2026-10-10T05:50:00",
+                "departing_at": "2026-10-09T13:50:00",
+                "destination_terminal": null,
+                "distance": null,
+                "duration": "PT11H",
+                "marketing_carrier_flight_number": "0961",
+                "operating_carrier_flight_number": "0961",
+                "origin_terminal": null,
+                "media": [],
+                "passengers": [
+                  {
+                    "passenger_id": "pas_0000BANOAayfXiagtJJOha",
+                    "cabin_class": "economy",
+                    "cabin_class_marketing_name": "Economy",
+                    "fare_basis_code": "TLOFXN",
+                    "baggages": [
+                      {
+                        "type": "checked",
+                        "quantity": 2
+                      },
+                      {
+                        "type": "carry_on",
+                        "quantity": 1
+                      }
+                    ],
+                    "cabin": {
+                      "marketing_name": "Economy",
+                      "name": "economy",
+                      "amenities": {
+                        "wifi": {
+                          "available": true,
+                          "cost": "paid"
+                        },
+                        "seat": {
+                          "type": "standard",
+                          "legroom": "more",
+                          "pitch": "32"
+                        },
+                        "power": {
+                          "available": true
+                        }
+                      }
+                    }
+                  }
+                ],
+                "stops": [],
+                "aircraft": {
+                  "iata_code": "359",
+                  "id": "arc_00009Y7soL1P9aXc7ZDTdo",
+                  "name": "Airbus A350-900"
+                },
+                "marketing_carrier": {
+                  "conditions_of_carriage_url": "https://www.thaiairways.com/en_GB/Terms_condition/contract_of_carriage.page?",
+                  "iata_code": "TG",
+                  "id": "arl_00009VME7DDoV8ZkzmMkZj",
+                  "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/TG.svg",
+                  "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/TG.svg",
+                  "name": "Thai Airways"
+                },
+                "operating_carrier": {
+                  "conditions_of_carriage_url": "https://www.thaiairways.com/en_GB/Terms_condition/contract_of_carriage.page?",
+                  "iata_code": "TG",
+                  "id": "arl_00009VME7DDoV8ZkzmMkZj",
+                  "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/TG.svg",
+                  "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/TG.svg",
+                  "name": "Thai Airways"
+                },
+                "origin": {
+                  "iata_code": "ARN",
+                  "iata_country_code": "SE",
+                  "id": "arp_arn_se",
+                  "name": "Stockholm-Arlanda Airport",
+                  "latitude": 59.650831,
+                  "longitude": 17.92119,
+                  "icao_code": "ESSA",
+                  "time_zone": "Europe/Stockholm",
+                  "city_name": "Stockholm",
+                  "iata_city_code": "STO",
+                  "type": "airport",
+                  "city": {
+                    "iata_code": "STO",
+                    "iata_country_code": "SE",
+                    "id": "cit_sto_se",
+                    "name": "Stockholm",
+                    "latitude": null,
+                    "longitude": null,
+                    "icao_code": null,
+                    "time_zone": null,
+                    "city_name": null,
+                    "iata_city_code": "STO",
+                    "type": "city"
+                  }
+                },
+                "destination": {
+                  "iata_code": "BKK",
+                  "iata_country_code": "TH",
+                  "id": "arp_bkk_th",
+                  "name": "Suvarnabhumi Airport",
+                  "latitude": 13.691187,
+                  "longitude": 100.748128,
+                  "icao_code": "VTBS",
+                  "time_zone": "Asia/Bangkok",
+                  "city_name": "Bangkok",
+                  "iata_city_code": "BKK",
+                  "type": "airport",
+                  "city": {
+                    "iata_code": "BKK",
+                    "iata_country_code": "TH",
+                    "id": "cit_bkk_th",
+                    "name": "Bangkok",
+                    "latitude": null,
+                    "longitude": null,
+                    "icao_code": null,
+                    "time_zone": null,
+                    "city_name": null,
+                    "iata_city_code": "BKK",
+                    "type": "city"
+                  }
+                }
+              },
+              {
+                "id": "seg_0000BANOAje5JcTNm4kaMu",
+                "arriving_at": "2026-10-11T06:55:00",
+                "departing_at": "2026-10-10T22:45:00",
+                "destination_terminal": null,
+                "distance": null,
+                "duration": "PT6H10M",
+                "marketing_carrier_flight_number": "0682",
+                "operating_carrier_flight_number": "0682",
+                "origin_terminal": null,
+                "media": [],
+                "passengers": [
+                  {
+                    "passenger_id": "pas_0000BANOAayfXiagtJJOha",
+                    "cabin_class": "economy",
+                    "cabin_class_marketing_name": "Economy",
+                    "fare_basis_code": "TLOFXN",
+                    "baggages": [
+                      {
+                        "type": "checked",
+                        "quantity": 2
+                      },
+                      {
+                        "type": "carry_on",
+                        "quantity": 1
+                      }
+                    ],
+                    "cabin": {
+                      "marketing_name": "Economy",
+                      "name": "economy",
+                      "amenities": {
+                        "wifi": {
+                          "available": false,
+                          "cost": "n/a"
+                        },
+                        "seat": {
+                          "type": "standard",
+                          "legroom": "more",
+                          "pitch": "32"
+                        },
+                        "power": {
+                          "available": true
+                        }
+                      }
+                    }
+                  }
+                ],
+                "stops": [],
+                "aircraft": {
+                  "iata_code": "77W",
+                  "id": "arc_00009VMF8AhXSSRnQDI6HH",
+                  "name": "Boeing 777-300ER"
+                },
+                "marketing_carrier": {
+                  "conditions_of_carriage_url": "https://www.thaiairways.com/en_GB/Terms_condition/contract_of_carriage.page?",
+                  "iata_code": "TG",
+                  "id": "arl_00009VME7DDoV8ZkzmMkZj",
+                  "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/TG.svg",
+                  "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/TG.svg",
+                  "name": "Thai Airways"
+                },
+                "operating_carrier": {
+                  "conditions_of_carriage_url": "https://www.thaiairways.com/en_GB/Terms_condition/contract_of_carriage.page?",
+                  "iata_code": "TG",
+                  "id": "arl_00009VME7DDoV8ZkzmMkZj",
+                  "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/TG.svg",
+                  "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/TG.svg",
+                  "name": "Thai Airways"
+                },
+                "origin": {
+                  "iata_code": "BKK",
+                  "iata_country_code": "TH",
+                  "id": "arp_bkk_th",
+                  "name": "Suvarnabhumi Airport",
+                  "latitude": 13.691187,
+                  "longitude": 100.748128,
+                  "icao_code": "VTBS",
+                  "time_zone": "Asia/Bangkok",
+                  "city_name": "Bangkok",
+                  "iata_city_code": "BKK",
+                  "type": "airport",
+                  "city": {
+                    "iata_code": "BKK",
+                    "iata_country_code": "TH",
+                    "id": "cit_bkk_th",
+                    "name": "Bangkok",
+                    "latitude": null,
+                    "longitude": null,
+                    "icao_code": null,
+                    "time_zone": null,
+                    "city_name": null,
+                    "iata_city_code": "BKK",
+                    "type": "city"
+                  }
+                },
+                "destination": {
+                  "iata_code": "HND",
+                  "iata_country_code": "JP",
+                  "id": "arp_hnd_jp",
+                  "name": "Haneda Airport",
+                  "latitude": 35.550846,
+                  "longitude": 139.779919,
+                  "icao_code": "RJTT",
+                  "time_zone": "Asia/Tokyo",
+                  "city_name": "Tokyo",
+                  "iata_city_code": "TYO",
+                  "type": "airport",
+                  "city": {
+                    "iata_code": "TYO",
+                    "iata_country_code": "JP",
+                    "id": "cit_tyo_jp",
+                    "name": "Tokyo",
+                    "latitude": null,
+                    "longitude": null,
+                    "icao_code": null,
+                    "time_zone": null,
+                    "city_name": null,
+                    "iata_city_code": "TYO",
+                    "type": "city"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "passengers": [
+          {
+            "id": "pas_0000BANOAayfXiagtJJOha",
+            "type": "adult",
+            "fare_type": null,
+            "age": null,
+            "given_name": null,
+            "family_name": null,
+            "loyalty_programme_accounts": []
+          }
+        ],
+        "available_services": null,
+        "payment_requirements": {
+          "requires_instant_payment": false,
+          "payment_required_by": "2026-09-14T19:43:17.019713Z",
+          "price_guarantee_expires_at": null
+        },
+        "intended_services": null,
+        "available_airline_credit_ids": []
+      },
+      {
+        "created_at": "2026-09-13T19:43:17.035225Z",
+        "updated_at": "2026-09-13T19:43:17.035225Z",
+        "id": "off_0000BANOAjbFUACjdHQJwJ",
+        "live_mode": false,
+        "expires_at": "2026-09-13T20:43:17.017342Z",
+        "supported_loyalty_programmes": [
+          "AR",
+          "AM",
+          "KQ",
+          "SU",
+          "ME",
+          "CI",
+          "MU",
+          "MF",
+          "SK",
+          "AF",
+          "KL",
+          "VS",
+          "GA",
+          "VN",
+          "OK",
+          "DL",
+          "KE",
+          "UX",
+          "AZ"
+        ],
+        "base_amount": "442.96",
+        "intended_base_amount": "442.96",
+        "base_currency": "EUR",
+        "tax_amount": "249.84",
+        "tax_currency": "EUR",
+        "total_amount": "692.80",
+        "intended_total_amount": "692.80",
+        "total_currency": "EUR",
+        "total_emissions_kg": "713",
+        "passenger_identity_documents_required": false,
+        "supported_passenger_identity_document_types": [
+          "known_traveler_number",
+          "passenger_redress_number",
+          "passport"
+        ],
+        "partial": false,
+        "private_fares": [],
+        "conditions": {
+          "change_before_departure": null,
+          "refund_before_departure": null
+        },
+        "owner": {
+          "conditions_of_carriage_url": "https://uk.ceair.com/newCMS/uk/en/content/en_Footer/AboutUS/201904/t20190404_5758.html",
+          "iata_code": "MU",
+          "id": "arl_00009VME7DBgd2sGtBN3GR",
+          "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/MU.svg",
+          "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/MU.svg",
+          "name": "China Eastern Airlines"
+        },
+        "slices": [
+          {
+            "id": "sli_0000BANOAjbFUACjdHQJwD",
+            "duration": "PT22H10M",
+            "destination_type": "airport",
+            "origin_type": "airport",
+            "fare_brand_name": "Economy Flex",
+            "ngs_shelf": 2,
+            "conditions": {
+              "change_before_departure": null,
+              "advance_seat_selection": null,
+              "priority_boarding": null,
+              "priority_check_in": null
+            },
+            "comparison_key": "BNLw6g==",
+            "origin": {
+              "iata_code": "ARN",
+              "iata_country_code": "SE",
+              "id": "arp_arn_se",
+              "name": "Stockholm-Arlanda Airport",
+              "latitude": 59.650831,
+              "longitude": 17.92119,
+              "icao_code": "ESSA",
+              "time_zone": "Europe/Stockholm",
+              "city_name": "Stockholm",
+              "iata_city_code": "STO",
+              "type": "airport",
+              "city": {
+                "iata_code": "STO",
+                "iata_country_code": "SE",
+                "id": "cit_sto_se",
+                "name": "Stockholm",
+                "latitude": null,
+                "longitude": null,
+                "icao_code": null,
+                "time_zone": null,
+                "city_name": null,
+                "iata_city_code": "STO",
+                "type": "city"
+              }
+            },
+            "destination": {
+              "iata_code": "HND",
+              "iata_country_code": "JP",
+              "id": "arp_hnd_jp",
+              "name": "Haneda Airport",
+              "latitude": 35.550846,
+              "longitude": 139.779919,
+              "icao_code": "RJTT",
+              "time_zone": "Asia/Tokyo",
+              "city_name": "Tokyo",
+              "iata_city_code": "TYO",
+              "type": "airport",
+              "city": {
+                "iata_code": "TYO",
+                "iata_country_code": "JP",
+                "id": "cit_tyo_jp",
+                "name": "Tokyo",
+                "latitude": null,
+                "longitude": null,
+                "icao_code": null,
+                "time_zone": null,
+                "city_name": null,
+                "iata_city_code": "TYO",
+                "type": "city"
+              }
+            },
+            "segments": [
+              {
+                "id": "seg_0000BANOAjatVTv9cBG2O8",
+                "arriving_at": "2026-10-09T18:15:00",
+                "departing_at": "2026-10-09T16:10:00",
+                "destination_terminal": null,
+                "distance": null,
+                "duration": "PT2H5M",
+                "marketing_carrier_flight_number": "1555",
+                "operating_carrier_flight_number": "1555",
+                "origin_terminal": null,
+                "media": [],
+                "passengers": [
+                  {
+                    "passenger_id": "pas_0000BANOAayfXiagtJJOha",
+                    "cabin_class": "economy",
+                    "cabin_class_marketing_name": "Economy",
+                    "fare_basis_code": "V0K0BEFD",
+                    "baggages": [
+                      {
+                        "type": "checked",
+                        "quantity": 2
+                      },
+                      {
+                        "type": "carry_on",
+                        "quantity": 1
+                      }
+                    ],
+                    "cabin": {
+                      "marketing_name": "Economy",
+                      "name": "economy",
+                      "amenities": {
+                        "wifi": {
+                          "available": true,
+                          "cost": "free"
+                        },
+                        "seat": {
+                          "type": "standard",
+                          "legroom": "less",
+                          "pitch": "29"
+                        },
+                        "power": {
+                          "available": true
+                        }
+                      }
+                    }
+                  }
+                ],
+                "stops": [],
+                "aircraft": {
+                  "iata_code": "32N",
+                  "id": "arc_00009lcSPZuSbgKG1u4Pkn",
+                  "name": "Airbus A320neo"
+                },
+                "marketing_carrier": {
+                  "conditions_of_carriage_url": "https://www.flysas.com/gb-en/legal-info/conditions-of-carriage/",
+                  "iata_code": "SK",
+                  "id": "arl_00009VME7DDSWSIAygCT1S",
+                  "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/SK.svg",
+                  "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/SK.svg",
+                  "name": "SAS"
+                },
+                "operating_carrier": {
+                  "conditions_of_carriage_url": "https://www.flysas.com/gb-en/legal-info/conditions-of-carriage/",
+                  "iata_code": "SK",
+                  "id": "arl_00009VME7DDSWSIAygCT1S",
+                  "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/SK.svg",
+                  "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/SK.svg",
+                  "name": "SAS"
+                },
+                "origin": {
+                  "iata_code": "ARN",
+                  "iata_country_code": "SE",
+                  "id": "arp_arn_se",
+                  "name": "Stockholm-Arlanda Airport",
+                  "latitude": 59.650831,
+                  "longitude": 17.92119,
+                  "icao_code": "ESSA",
+                  "time_zone": "Europe/Stockholm",
+                  "city_name": "Stockholm",
+                  "iata_city_code": "STO",
+                  "type": "airport",
+                  "city": {
+                    "iata_code": "STO",
+                    "iata_country_code": "SE",
+                    "id": "cit_sto_se",
+                    "name": "Stockholm",
+                    "latitude": null,
+                    "longitude": null,
+                    "icao_code": null,
+                    "time_zone": null,
+                    "city_name": null,
+                    "iata_city_code": "STO",
+                    "type": "city"
+                  }
+                },
+                "destination": {
+                  "iata_code": "AMS",
+                  "iata_country_code": "NL",
+                  "id": "arp_ams_nl",
+                  "name": "Amsterdam Airport Schiphol",
+                  "latitude": 52.308856,
+                  "longitude": 4.765869,
+                  "icao_code": "EHAM",
+                  "time_zone": "Europe/Amsterdam",
+                  "city_name": "Amsterdam",
+                  "iata_city_code": "AMS",
+                  "type": "airport",
+                  "city": null
+                }
+              },
+              {
+                "id": "seg_0000BANOAjatVTv9cBG2OA",
+                "arriving_at": "2026-10-10T13:15:00",
+                "departing_at": "2026-10-09T20:15:00",
+                "destination_terminal": null,
+                "distance": null,
+                "duration": "PT11H",
+                "marketing_carrier_flight_number": "0772",
+                "operating_carrier_flight_number": "0772",
+                "origin_terminal": null,
+                "media": [],
+                "passengers": [
+                  {
+                    "passenger_id": "pas_0000BANOAayfXiagtJJOha",
+                    "cabin_class": "economy",
+                    "cabin_class_marketing_name": "Economy",
+                    "fare_basis_code": "V0K0BEFD",
+                    "baggages": [
+                      {
+                        "type": "checked",
+                        "quantity": 2
+                      },
+                      {
+                        "type": "carry_on",
+                        "quantity": 1
+                      }
+                    ],
+                    "cabin": {
+                      "marketing_name": "Economy",
+                      "name": "economy",
+                      "amenities": {
+                        "wifi": {
+                          "available": true,
+                          "cost": "free"
+                        },
+                        "seat": {
+                          "type": "standard",
+                          "legroom": "more",
+                          "pitch": "32"
+                        },
+                        "power": {
+                          "available": true
+                        }
+                      }
+                    }
+                  }
+                ],
+                "stops": [],
+                "aircraft": {
+                  "iata_code": "77W",
+                  "id": "arc_00009VMF8AhXSSRnQDI6HH",
+                  "name": "Boeing 777-300ER"
+                },
+                "marketing_carrier": {
+                  "conditions_of_carriage_url": "https://uk.ceair.com/newCMS/uk/en/content/en_Footer/AboutUS/201904/t20190404_5758.html",
+                  "iata_code": "MU",
+                  "id": "arl_00009VME7DBgd2sGtBN3GR",
+                  "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/MU.svg",
+                  "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/MU.svg",
+                  "name": "China Eastern Airlines"
+                },
+                "operating_carrier": {
+                  "conditions_of_carriage_url": "https://uk.ceair.com/newCMS/uk/en/content/en_Footer/AboutUS/201904/t20190404_5758.html",
+                  "iata_code": "MU",
+                  "id": "arl_00009VME7DBgd2sGtBN3GR",
+                  "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/MU.svg",
+                  "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/MU.svg",
+                  "name": "China Eastern Airlines"
+                },
+                "origin": {
+                  "iata_code": "AMS",
+                  "iata_country_code": "NL",
+                  "id": "arp_ams_nl",
+                  "name": "Amsterdam Airport Schiphol",
+                  "latitude": 52.308856,
+                  "longitude": 4.765869,
+                  "icao_code": "EHAM",
+                  "time_zone": "Europe/Amsterdam",
+                  "city_name": "Amsterdam",
+                  "iata_city_code": "AMS",
+                  "type": "airport",
+                  "city": null
+                },
+                "destination": {
+                  "iata_code": "PVG",
+                  "iata_country_code": "CN",
+                  "id": "arp_pvg_cn",
+                  "name": "Shanghai Pudong International Airport",
+                  "latitude": 31.143872,
+                  "longitude": 121.806636,
+                  "icao_code": "ZSPD",
+                  "time_zone": "Asia/Shanghai",
+                  "city_name": "Shanghai",
+                  "iata_city_code": "SHA",
+                  "type": "airport",
+                  "city": {
+                    "iata_code": "SHA",
+                    "iata_country_code": "CN",
+                    "id": "cit_sha_cn",
+                    "name": "Shanghai",
+                    "latitude": null,
+                    "longitude": null,
+                    "icao_code": null,
+                    "time_zone": null,
+                    "city_name": null,
+                    "iata_city_code": "SHA",
+                    "type": "city"
+                  }
+                }
+              },
+              {
+                "id": "seg_0000BANOAjbFUACjdHQJwA",
+                "arriving_at": "2026-10-10T21:20:00",
+                "departing_at": "2026-10-10T17:15:00",
+                "destination_terminal": null,
+                "distance": null,
+                "duration": "PT3H5M",
+                "marketing_carrier_flight_number": "0575",
+                "operating_carrier_flight_number": "0575",
+                "origin_terminal": null,
+                "media": [],
+                "passengers": [
+                  {
+                    "passenger_id": "pas_0000BANOAayfXiagtJJOha",
+                    "cabin_class": "economy",
+                    "cabin_class_marketing_name": "Economy",
+                    "fare_basis_code": "V0K0BEFD",
+                    "baggages": [
+                      {
+                        "type": "checked",
+                        "quantity": 2
+                      },
+                      {
+                        "type": "carry_on",
+                        "quantity": 1
+                      }
+                    ],
+                    "cabin": {
+                      "marketing_name": "Economy",
+                      "name": "economy",
+                      "amenities": {
+                        "wifi": {
+                          "available": true,
+                          "cost": "free"
+                        },
+                        "seat": {
+                          "type": "standard",
+                          "legroom": "more",
+                          "pitch": "32"
+                        },
+                        "power": {
+                          "available": true
+                        }
+                      }
+                    }
+                  }
+                ],
+                "stops": [],
+                "aircraft": {
+                  "iata_code": "77W",
+                  "id": "arc_00009VMF8AhXSSRnQDI6HH",
+                  "name": "Boeing 777-300ER"
+                },
+                "marketing_carrier": {
+                  "conditions_of_carriage_url": "https://uk.ceair.com/newCMS/uk/en/content/en_Footer/AboutUS/201904/t20190404_5758.html",
+                  "iata_code": "MU",
+                  "id": "arl_00009VME7DBgd2sGtBN3GR",
+                  "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/MU.svg",
+                  "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/MU.svg",
+                  "name": "China Eastern Airlines"
+                },
+                "operating_carrier": {
+                  "conditions_of_carriage_url": "https://uk.ceair.com/newCMS/uk/en/content/en_Footer/AboutUS/201904/t20190404_5758.html",
+                  "iata_code": "MU",
+                  "id": "arl_00009VME7DBgd2sGtBN3GR",
+                  "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/MU.svg",
+                  "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/MU.svg",
+                  "name": "China Eastern Airlines"
+                },
+                "origin": {
+                  "iata_code": "PVG",
+                  "iata_country_code": "CN",
+                  "id": "arp_pvg_cn",
+                  "name": "Shanghai Pudong International Airport",
+                  "latitude": 31.143872,
+                  "longitude": 121.806636,
+                  "icao_code": "ZSPD",
+                  "time_zone": "Asia/Shanghai",
+                  "city_name": "Shanghai",
+                  "iata_city_code": "SHA",
+                  "type": "airport",
+                  "city": {
+                    "iata_code": "SHA",
+                    "iata_country_code": "CN",
+                    "id": "cit_sha_cn",
+                    "name": "Shanghai",
+                    "latitude": null,
+                    "longitude": null,
+                    "icao_code": null,
+                    "time_zone": null,
+                    "city_name": null,
+                    "iata_city_code": "SHA",
+                    "type": "city"
+                  }
+                },
+                "destination": {
+                  "iata_code": "HND",
+                  "iata_country_code": "JP",
+                  "id": "arp_hnd_jp",
+                  "name": "Haneda Airport",
+                  "latitude": 35.550846,
+                  "longitude": 139.779919,
+                  "icao_code": "RJTT",
+                  "time_zone": "Asia/Tokyo",
+                  "city_name": "Tokyo",
+                  "iata_city_code": "TYO",
+                  "type": "airport",
+                  "city": {
+                    "iata_code": "TYO",
+                    "iata_country_code": "JP",
+                    "id": "cit_tyo_jp",
+                    "name": "Tokyo",
+                    "latitude": null,
+                    "longitude": null,
+                    "icao_code": null,
+                    "time_zone": null,
+                    "city_name": null,
+                    "iata_city_code": "TYO",
+                    "type": "city"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "passengers": [
+          {
+            "id": "pas_0000BANOAayfXiagtJJOha",
+            "type": "adult",
+            "fare_type": null,
+            "age": null,
+            "given_name": null,
+            "family_name": null,
+            "loyalty_programme_accounts": []
+          }
+        ],
+        "available_services": null,
+        "payment_requirements": {
+          "requires_instant_payment": false,
+          "payment_required_by": "2026-09-14T19:43:17.017288Z",
+          "price_guarantee_expires_at": null
+        },
+        "intended_services": null,
+        "available_airline_credit_ids": []
+      },
+      {
+        "created_at": "2026-09-13T19:43:15.616383Z",
+        "updated_at": "2026-09-13T19:43:15.616383Z",
+        "id": "off_0000BANOAbCUiJeLaBmRFH",
+        "live_mode": false,
+        "expires_at": "2026-09-13T20:13:15.616387Z",
+        "supported_loyalty_programmes": [
+          "AA",
+          "AS",
+          "CX",
+          "MH",
+          "BA",
+          "AY",
+          "UL",
+          "QF",
+          "IB",
+          "JM",
+          "QR",
+          "UM",
+          "RJ",
+          "AT"
+        ],
+        "base_amount": "415.08",
+        "intended_base_amount": "415.08",
+        "base_currency": "EUR",
+        "tax_amount": "74.72",
+        "tax_currency": "EUR",
+        "total_amount": "489.80",
+        "intended_total_amount": "489.80",
+        "total_currency": "EUR",
+        "total_emissions_kg": "878",
+        "passenger_identity_documents_required": false,
+        "supported_passenger_identity_document_types": [
+          "passport",
+          "known_traveler_number",
+          "passenger_redress_number"
+        ],
+        "partial": false,
+        "private_fares": [],
+        "conditions": {
+          "change_before_departure": {
+            "allowed": false,
+            "penalty_amount": null,
+            "penalty_currency": null
+          },
+          "refund_before_departure": {
+            "allowed": true,
+            "penalty_amount": "80.00",
+            "penalty_currency": "EUR"
+          }
+        },
+        "owner": {
+          "conditions_of_carriage_url": "https://www.britishairways.com/en-gb/information/legal/british-airways/general-conditions-of-carriage",
+          "iata_code": "BA",
+          "id": "arl_00009VME7DBKeMags5CliQ",
+          "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/BA.svg",
+          "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/BA.svg",
+          "name": "British Airways"
+        },
+        "slices": [
+          {
+            "id": "sli_0000BANOAbCUiJeLaBmRFC",
+            "duration": "PT11H28M",
+            "destination_type": "airport",
+            "origin_type": "airport",
+            "fare_brand_name": "Comfort",
+            "ngs_shelf": 3,
+            "conditions": {
+              "change_before_departure": {
+                "allowed": false,
+                "penalty_amount": null,
+                "penalty_currency": null
+              },
+              "advance_seat_selection": null,
+              "priority_boarding": null,
+              "priority_check_in": null
+            },
+            "comparison_key": "A5930w==",
+            "origin": {
+              "iata_code": "ARN",
+              "iata_country_code": "SE",
+              "id": "arp_arn_se",
+              "name": "Stockholm-Arlanda Airport",
+              "latitude": 59.650831,
+              "longitude": 17.92119,
+              "icao_code": "ESSA",
+              "time_zone": "Europe/Stockholm",
+              "city_name": "Stockholm",
+              "iata_city_code": "STO",
+              "type": "airport",
+              "city": {
+                "iata_code": "STO",
+                "iata_country_code": "SE",
+                "id": "cit_sto_se",
+                "name": "Stockholm",
+                "latitude": null,
+                "longitude": null,
+                "icao_code": null,
+                "time_zone": null,
+                "city_name": null,
+                "iata_city_code": "STO",
+                "type": "city"
+              }
+            },
+            "destination": {
+              "iata_code": "HND",
+              "iata_country_code": "JP",
+              "id": "arp_hnd_jp",
+              "name": "Haneda Airport",
+              "latitude": 35.550846,
+              "longitude": 139.779919,
+              "icao_code": "RJTT",
+              "time_zone": "Asia/Tokyo",
+              "city_name": "Tokyo",
+              "iata_city_code": "TYO",
+              "type": "airport",
+              "city": {
+                "iata_code": "TYO",
+                "iata_country_code": "JP",
+                "id": "cit_tyo_jp",
+                "name": "Tokyo",
+                "latitude": null,
+                "longitude": null,
+                "icao_code": null,
+                "time_zone": null,
+                "city_name": null,
+                "iata_city_code": "TYO",
+                "type": "city"
+              }
+            },
+            "segments": [
+              {
+                "id": "seg_0000BANOAbCUiJeLaBmRF2",
+                "arriving_at": "2026-10-10T00:39:00",
+                "departing_at": "2026-10-09T06:11:00",
+                "destination_terminal": "1",
+                "distance": "8167.851945899597",
+                "duration": "PT11H28M",
+                "marketing_carrier_flight_number": "0109",
+                "operating_carrier_flight_number": "0109",
+                "origin_terminal": "2",
+                "media": [],
+                "passengers": [
+                  {
+                    "passenger_id": "pas_0000BANOAayfXiagtJJOha",
+                    "cabin_class": "premium_economy",
+                    "cabin_class_marketing_name": "Premium Economy",
+                    "fare_basis_code": "P20LGTN2",
+                    "baggages": [
+                      {
+                        "type": "checked",
+                        "quantity": 1
+                      },
+                      {
+                        "type": "carry_on",
+                        "quantity": 1
+                      }
+                    ],
+                    "cabin": {
+                      "marketing_name": "Premium Economy",
+                      "name": "premium_economy",
+                      "amenities": {
+                        "wifi": {
+                          "available": true,
+                          "cost": "paid"
+                        },
+                        "seat": {
+                          "type": null,
+                          "legroom": "n/a",
+                          "pitch": "30"
+                        },
+                        "power": {
+                          "available": true
+                        }
+                      }
+                    }
+                  }
+                ],
+                "stops": [],
+                "aircraft": null,
+                "marketing_carrier": {
+                  "conditions_of_carriage_url": "https://www.britishairways.com/en-gb/information/legal/british-airways/general-conditions-of-carriage",
+                  "iata_code": "BA",
+                  "id": "arl_00009VME7DBKeMags5CliQ",
+                  "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/BA.svg",
+                  "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/BA.svg",
+                  "name": "British Airways"
+                },
+                "operating_carrier": {
+                  "conditions_of_carriage_url": "https://www.britishairways.com/en-gb/information/legal/british-airways/general-conditions-of-carriage",
+                  "iata_code": "BA",
+                  "id": "arl_00009VME7DBKeMags5CliQ",
+                  "logo_lockup_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-lockup/BA.svg",
+                  "logo_symbol_url": "https://assets.duffel.com/img/airlines/for-light-background/full-color-logo/BA.svg",
+                  "name": "British Airways"
+                },
+                "origin": {
+                  "iata_code": "ARN",
+                  "iata_country_code": "SE",
+                  "id": "arp_arn_se",
+                  "name": "Stockholm-Arlanda Airport",
+                  "latitude": 59.650831,
+                  "longitude": 17.92119,
+                  "icao_code": "ESSA",
+                  "time_zone": "Europe/Stockholm",
+                  "city_name": "Stockholm",
+                  "iata_city_code": "STO",
+                  "type": "airport",
+                  "city": {
+                    "iata_code": "STO",
+                    "iata_country_code": "SE",
+                    "id": "cit_sto_se",
+                    "name": "Stockholm",
+                    "latitude": null,
+                    "longitude": null,
+                    "icao_code": null,
+                    "time_zone": null,
+                    "city_name": null,
+                    "iata_city_code": "STO",
+                    "type": "city"
+                  }
+                },
+                "destination": {
+                  "iata_code": "HND",
+                  "iata_country_code": "JP",
+                  "id": "arp_hnd_jp",
+                  "name": "Haneda Airport",
+                  "latitude": 35.550846,
+                  "longitude": 139.779919,
+                  "icao_code": "RJTT",
+                  "time_zone": "Asia/Tokyo",
+                  "city_name": "Tokyo",
+                  "iata_city_code": "TYO",
+                  "type": "airport",
+                  "city": {
+                    "iata_code": "TYO",
+                    "iata_country_code": "JP",
+                    "id": "cit_tyo_jp",
+                    "name": "Tokyo",
+                    "latitude": null,
+                    "longitude": null,
+                    "icao_code": null,
+                    "time_zone": null,
+                    "city_name": null,
+                    "iata_city_code": "TYO",
+                    "type": "city"
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "passengers": [
+          {
+            "id": "pas_0000BANOAayfXiagtJJOha",
+            "type": "adult",
+            "fare_type": null,
+            "age": null,
+            "given_name": null,
+            "family_name": null,
+            "loyalty_programme_accounts": []
+          }
+        ],
+        "available_services": null,
+        "payment_requirements": {
+          "requires_instant_payment": false,
+          "payment_required_by": "2026-09-16T19:43:15Z",
+          "price_guarantee_expires_at": "2026-09-15T19:43:15Z"
+        },
+        "intended_services": null,
+        "available_airline_credit_ids": []
+      }
+    ],
+    "cabin_class": null,
+    "slices": [
+      {
+        "destination_type": "airport",
+        "origin_type": "airport",
+        "departure_date": "2026-10-09",
+        "destination": {
+          "city_name": "Tokyo",
+          "icao_code": "RJTT",
+          "iata_city_code": "TYO",
+          "iata_country_code": "JP",
+          "iata_code": "HND",
+          "latitude": 35.550846,
+          "longitude": 139.779919,
+          "city": {
+            "city_name": null,
+            "icao_code": null,
+            "iata_city_code": "TYO",
+            "iata_country_code": "JP",
+            "iata_code": "TYO",
+            "latitude": null,
+            "longitude": null,
+            "time_zone": null,
+            "type": "city",
+            "name": "Tokyo",
+            "id": "cit_tyo_jp"
+          },
+          "time_zone": "Asia/Tokyo",
+          "type": "airport",
+          "name": "Haneda Airport",
+          "id": "arp_hnd_jp"
+        },
+        "origin": {
+          "city_name": "Stockholm",
+          "icao_code": "ESSA",
+          "iata_city_code": "STO",
+          "iata_country_code": "SE",
+          "iata_code": "ARN",
+          "latitude": 59.650831,
+          "longitude": 17.92119,
+          "city": {
+            "city_name": null,
+            "icao_code": null,
+            "iata_city_code": "STO",
+            "iata_country_code": "SE",
+            "iata_code": "STO",
+            "latitude": null,
+            "longitude": null,
+            "time_zone": null,
+            "type": "city",
+            "name": "Stockholm",
+            "id": "cit_sto_se"
+          },
+          "time_zone": "Europe/Stockholm",
+          "type": "airport",
+          "name": "Stockholm-Arlanda Airport",
+          "id": "arp_arn_se"
+        }
+      }
+    ],
+    "created_at": "2026-09-13T19:43:15.582705Z",
+    "live_mode": false,
+    "passengers": [
+      {
+        "loyalty_programme_accounts": [],
+        "fare_type": null,
+        "family_name": null,
+        "given_name": null,
+        "user_id": null,
+        "age": null,
+        "type": "adult",
+        "id": "pas_0000BANOAayfXiagtJJOha"
+      }
+    ],
+    "client_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODk0MTQ5OTcsImxpdmVfbW9kZSI6ZmFsc2UsIm9yZ2FuaXNhdGlvbl9pZCI6Im9yZ18wMDAwQkFOSmgzUjZzUm1OeDI0RTFoIiwicGxhdGZvcm1fdXNlcl9pZCI6bnVsbH0._bt8q0KH2I2aeVSzYjtH5Kwya0wOn8i3-kDzvFMz9pU",
+    "id": "orq_0000BANOAayfXiagtJJOhT"
+  }
+}
