@@ -41,20 +41,13 @@ class DuffelBookingProvider:
         return []  # activities: no provider wired up yet
 
     def _search_flights(self, brief: TripBrief) -> list[BookingOption]:
+        origin, destination = brief.airports
         body = {
             "data": {
                 "passengers": [{"type": "adult"} for _ in range(brief.travellers)],
                 "slices": [
-                    {
-                        "origin": brief.origin,
-                        "destination": brief.destination,
-                        "departure_date": brief.start_date.isoformat(),
-                    },
-                    {
-                        "origin": brief.destination,
-                        "destination": brief.origin,
-                        "departure_date": brief.end_date.isoformat(),
-                    },
+                    {"origin": origin, "destination": destination, "departure_date": brief.start_date.isoformat()},
+                    {"origin": destination, "destination": origin, "departure_date": brief.end_date.isoformat()},
                 ],
             }
         }
@@ -65,12 +58,13 @@ class DuffelBookingProvider:
         return [self._to_option(brief, offer) for offer in ordered[:MAX_OPTIONS]]
 
     def _to_option(self, brief: TripBrief, offer: dict[str, Any]) -> BookingOption:
+        origin, destination = brief.airports
         owner_name = offer.get("owner", {}).get("name", "Unknown airline")
         return BookingOption(
             kind=BookingKind.flight,
             provider=self.name,
             provider_ref=offer["id"],
-            title=f"{owner_name}, {brief.origin} to {brief.destination}, return, {brief.travellers} pax",
+            title=f"{owner_name}, {origin} to {destination}, return, {brief.travellers} pax",
             price_minor=minor_units(offer["total_amount"]),
             currency=offer["total_currency"],
             details={"depart": brief.start_date.isoformat(), "return": brief.end_date.isoformat()},
