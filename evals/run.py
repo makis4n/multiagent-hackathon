@@ -13,6 +13,7 @@ import traceback
 from collections.abc import Callable
 from pathlib import Path
 
+import httpx
 from dotenv import load_dotenv
 
 from trip_agent.log import CallLog
@@ -23,6 +24,7 @@ from trip_core.models import MAX_TRANSIT_MINUTES, BookingKind, CheckKind, TripBr
 ROOT = Path(__file__).resolve().parent
 TRIPS = ROOT / "trips"
 RESULTS = ROOT / "results"
+URL_SAMPLE = 10
 
 Verdict = tuple[bool, str]
 
@@ -30,7 +32,25 @@ Verdict = tuple[bool, str]
 def check_signals(state: TripState) -> Verdict:
     places = {place for signal in state.signals for place in signal.places_mentioned}
     ok = len(state.signals) >= 15 and len(places) >= 10
-    return ok, f"{len(state.signals)} signals, {len(places)} places"
+    detail = f"{len(state.signals)} signals, {len(places)} places"
+    if active_flags()["RESEARCH"]:
+        dead = dead_urls([signal.url for signal in state.signals[:URL_SAMPLE]])
+        ok = ok and not dead
+        detail += f", {len(dead)} dead of {min(len(state.signals), URL_SAMPLE)} URLs checked"
+    return ok, detail
+
+
+def dead_urls(urls: list[str]) -> list[str]:
+    """URLs that do not answer 2xx or 3xx within 5 seconds. Only meaningful for real research."""
+    dead: list[str] = []
+    with httpx.Client(timeout=5.0, follow_redirects=True, headers={"User-Agent": "trip-agent-evals/0.1"}) as client:
+        for url in urls:
+            try:
+                if client.get(url).status_code >= 400:
+                    dead.append(url)
+            except httpx.HTTPError:
+                dead.append(url)
+    return dead
 
 
 def check_resolved(state: TripState) -> Verdict:

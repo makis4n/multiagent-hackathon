@@ -23,7 +23,7 @@ from trip_agent.loop import (
     stage_search,
     stage_verify,
 )
-from trip_agent.registry import active_flags, build_tools
+from trip_agent.registry import active_flags, build_tools, inject_booking_failure
 from trip_core.models import BudgetBand, TripBrief, TripState
 
 STYLES = ["food", "art", "museums", "nightlife", "nature", "family", "shopping", "neighbourhood walks"]
@@ -91,7 +91,8 @@ def brief_form(tools: Tools) -> None:
         st.session_state["state"] = state
         st.rerun()
     real = [name.lower() for name, on in active_flags().items() if on]
-    st.caption("Real tools: " + (", ".join(real) or "none, all fakes"))
+    injected = " · booking failure injected" if inject_booking_failure() else ""
+    st.caption("Real tools: " + (", ".join(real) or "none, all fakes") + injected)
 
 
 def questions_form(state: TripState, tools: Tools) -> None:

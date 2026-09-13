@@ -111,3 +111,21 @@ def test_stages_match_run(tmp_path: Path) -> None:
     assert staged.itinerary is not None and whole.itinerary is not None
     assert [s.place_name for s in staged.itinerary.stops()] == [s.place_name for s in whole.itinerary.stops()]
     assert staged.calendar_url == whole.calendar_url
+
+
+def test_injected_failure_recovers_with_one_order(tmp_path: Path, monkeypatch) -> None:
+    from trip_agent.registry import FailOnce, build_tools
+
+    monkeypatch.setenv("INJECT_BOOKING_FAILURE", "1")
+    for flag in ("RESEARCH", "PLACES", "PLANNER", "VERIFIER", "BOOKING", "CALENDAR"):
+        monkeypatch.delenv(f"REAL_{flag}", raising=False)
+    tools = build_tools()
+    assert isinstance(tools.booking, FailOnce)
+    brief = load_fixture("tokyo").brief
+    log = CallLog(tmp_path / "calls.jsonl", brief.id)
+    state = run(brief, tools, log, confirm=lambda option: NOW)
+    assert [order.option.kind for order in state.orders] == [BookingKind.flight, BookingKind.stay]
+    attempts = [(e["attempt"], e["ok"]) for e in log.entries() if e["tool"] == "booking.order.flight"]
+    assert attempts == [(1, False), (2, True)]
+    inner = tools.booking.inner
+    assert len(inner.orders) == 2
