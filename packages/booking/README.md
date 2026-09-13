@@ -1,6 +1,6 @@
 # trip-booking
 
-Status: **unclaimed**. Claim it by putting your name on this line in your first commit.
+Status: **KieronOei**.
 
 Lane D. Duffel test mode for flights and stays, Viator or Amadeus for activity search. Implement
 `build_provider()` in `trip_booking/__init__.py`; `REAL_BOOKING=1` selects it.
