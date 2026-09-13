@@ -75,3 +75,23 @@ The reviewer mutation-tested the seven tests from a copy outside the repo: remov
 Confirmed clean by the reviewer: the catch is narrow, no `Exception` and no bare `except`, the prompt builders sit
 outside the try so a programming error still escapes, and an empty return from either method lets the loop fall
 through to resolve, verify and book with the itinerary unchanged.
+
+| 6 replace_failed and the rule 12 fix | 17f3a97 | pass with notes | log leak fixed red-first, eleven mutations reproduced |
+
+## Task 6 notes, carried forward
+
+1. **Reviewer method, worth keeping.** Its first mutation run was worthless: the copied virtualenv resolved the
+   editable install back to the real repo, so mutations appeared to survive. It caught that itself and reran with
+   the import path forced at the copy, verified by printing the module file. Any future mutation testing does the same.
+2. **For task 7.** Behaviour 8's remove half is proven only through the reused-place route. No payload has the model
+   stay silent about a failed stop, which is the other way a remove happens.
+3. **For task 7.** Two failed stops cannot be given the same replacement place. The code enforces it, no test holds it.
+4. **For task 7, a decision not a chore.** `last_dropped` no longer carries exception messages, but it does carry
+   model output fragments: a proposed place name, an unknown op string, a bad time string. Today nothing reads it,
+   so no rule is broken. Piping it into `CallLog` would turn those into log lines and put rule 12 back in play.
+5. **For task 7.** Every entry point rebinds `last_dropped`, so one loop round keeps only the last call's drops.
+   A reader must read it immediately after each call.
+6. The two `skip:` implementations agree, and the planner's is the looser one, so nothing the fake skips comes back.
+   They part company only on non-ASCII case folding. Recorded, not worth changing.
+7. A stop failing two checks is deduped by the report itself, so one patch per failed stop holds. No test plants
+   that shape, and a real verifier will produce it.
