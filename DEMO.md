@@ -1,56 +1,93 @@
 # Demo script
 
-Two minutes, one take, recorded by 15:40 PT. Screen recording of the browser only, 1440x900, the Streamlit page
-at http://localhost:8501 in a clean window. No terminal on screen. Narration in the present tense: say what the
-agent is doing, not what we built.
+Two minutes. Screen recording of the browser only, 1440x900, Tripia at http://localhost:8501 in a clean window,
+sidebar open. No terminal on screen. Talk in the present tense about what it is doing, not about what we built.
+Sound like you are showing a friend, not reading a spec.
 
 ## Setup, before recording
 
 ```sh
 git pull --rebase origin main
-cp .env.example .env            # fill the keys, then: REAL_RESEARCH=1 REAL_PLANNER=1 REAL_PLACES=1 REAL_VERIFIER=1 REAL_BOOKING=1
-echo INJECT_BOOKING_FAILURE=1 >> .env
 make check && make fixture      # both green, or do not record
 make ui
 ```
 
-Reload the page once so the caption reads the real tools you expect plus "booking failure injected".
+`.env` needs every real flag on (`REAL_RESEARCH`, `REAL_PLANNER`, `REAL_PLACES`, `REAL_VERIFIER`, `REAL_BOOKING`)
+and `INJECT_BOOKING_FAILURE=1`. Reload the page once after starting the server. Check the Duffel test balance
+covers two rehearsals and the take: each run books one sandbox flight of roughly 1,000 to 2,000 EUR.
 
-## The brief to type
+## The brief
 
-| field | value |
-| --- | --- |
-| Destination | Tokyo |
-| Flying from | ARN |
-| Start, End | 2026-11-12, 2026-11-16 |
-| Travellers | 2 |
-| Budget | mid |
-| Styles | food, art |
+The form opens on it already: Tokyo (TYO), from Stockholm Arlanda (ARN), 12 to 16 November, two travellers,
+150 EUR a day, food and art selected. Do not touch it except to press Plan trip.
 
-## Beats
+## Timings
 
-Measured on real tools at 13:20 PT on Gemini: research 12 s, draft 7 s, verification 22 s. Re-measured at 14:05 PT on
-Claude (Sonnet 5, effort low): research 28 s, draft 22 s, questions 4 s, verification with one replacement pass 38 s.
-Two waits, about 55 s and 40 s; the narration below covers both, and a rehearsal run right before recording is the
-only way to know today's numbers.
-Talk through both; never stare at a spinner in silence. One take fits two minutes without cuts.
+Measured on the merged main with Haiku drafting: the first wait (research plus draft) is 60 to 90 seconds, the
+second (refine, resolve, verify, flight search) 50 to 60 seconds. That is more than two minutes of waiting, so
+record the whole take and make one cut inside the first wait, while the loading bar is on screen. The narration
+for that beat is one sentence; the cut lands between it and the next. Nothing else needs a cut.
 
-| at | do | on screen | say |
-| --- | --- | --- | --- |
-| 0:00 | Read the filled form, click Plan trip. | The brief. | "Five days in Tokyo for two people who like food and art. One form, then the agent works." |
-| 0:10 | Wait, talking. | "Researching and drafting". | "It's reading about a hundred recent posts right now: YouTube vlogs and Reddit threads via web search, with dates. Not a guidebook, what people said this month." |
-| 0:28 | Point at the source list. | "What people are saying", titles with source and date. | "Every source is dated. Then Claude drafts from those, and only those." |
-| 0:38 | Scroll the draft once. | Day tables, status draft. | "First draft. Every stop cites the post it came from. Nothing is checked yet, and it says so." |
-| 0:48 | Answer one question: type `skip: ` plus a place name copied exactly from the draft. Click Check and finish. | The questions. | "It asks instead of guessing. An answer becomes an edit to the plan, never a rewrite." |
-| 0:58 | Wait, talking. | "Refining and verifying every stop". | "Now every stop goes to Google: does the place exist, is it open at that hour on that weekday, can you get there in time from the previous stop. Twenty stops, a few hundred checks." |
-| 1:20 | Point at the warnings. | Swaps and removals with reasons; Stops verified 100%. | "This museum closes Mondays, so it swapped it. This leg was too far, so it dropped the stop and says why. What's left is verified." |
-| 1:35 | Click Book on the flight. | The order line with its reference. | "Flights through Duffel, test mode. Nothing is booked until I click. That call failed at the provider and retried; still one booking, because every order carries an idempotency key." |
-| 1:50 | Scroll to the top of the plan. | The finished plan. | "Ten test trips run through this same loop and pass every check. That's the trip, verified, with receipts." |
+Rehearse once right before the take so you know today's numbers and which stop to skip.
 
-The `skip:` answer must match a place name in the draft exactly, or nothing is removed. Pick one from the first
-day's table before you start talking.
+## The take
+
+**0:00, the form.** Look at the form, then click Plan trip.
+
+> Say I've got five days in Tokyo in November, two of us, we like food and art, and I don't want to spend a week
+> on Reddit figuring out where to go. So I tell Tripia that, and I press go.
+
+**0:08, the loading bar.** The bar fills and the tips rotate. Let one tip land before you talk over it.
+
+> Right now it's reading. About a hundred posts from the last few weeks: YouTube vlogs, Reddit threads, all
+> dated. Not a guidebook. What people are actually saying this month.
+
+*Cut here if the wait runs long.*
+
+**0:30, the draft appears.** Point at the source list in the sidebar, then scroll the draft slowly, once.
+
+> There's the list it read from, every one with a date. And here's the first draft. Four stops a day, and every
+> single one says which post it came from. Nothing is checked yet, and it's honest about that, see, they're all
+> marked draft.
+
+**0:50, the questions.** Read the first question aloud. In the "skip" question, type `skip:` and a place name copied
+exactly from the first day. Leave the others blank. Click Check and finish the plan.
+
+> Instead of guessing what I meant, it asks. I'll say skip this one, I've been. And that answer turns into an
+> edit to the plan I'm already looking at, not a whole new plan.
+
+**1:00, the second loading bar.** Talk over it. This is the part that matters, so slow down.
+
+> Now the boring part that nobody does. Every stop goes to Google. Does the place exist. Is it open at that hour,
+> on that day of the week. Can you actually get there from the one before. Twenty stops, a few hundred checks.
+
+**1:20, the verified plan.** The photo banner, the 100% tile, the swaps beside it. Point at one swap.
+
+> Done. This one's closed on Mondays, so it swapped it and tells me why. What's left is verified, all of it,
+> and now the stops have faces.
+
+**1:35, book the flight.** Scroll to Book. Click Book on the first flight. The reference appears.
+
+> Flights are through Duffel, in test mode, and nothing gets booked until I click. Here's the bit I like: that
+> call just failed halfway through, on purpose, and it retried. Still one booking. Every order carries a key, so
+> a retry can never buy the same flight twice.
+
+**1:50, the plan.** Scroll back to the top of the plan and stop.
+
+> Ten test trips run through this exact loop and pass every check. That's the trip. Researched, checked, booked,
+> with receipts.
+
+## Notes for the speaker
+
+- Say "Tripia" once, at the start. After that it's "it".
+- Never read the screen aloud. Say what it means.
+- The two waits are where people lose the room. Keep talking, keep the sentences short, and let the tip lines
+  do some of the work: they are written to be read.
+- If a swap did not happen this run, the line at 1:20 becomes: "Every stop passed first time, and it says so.
+  On a busy day it swaps the closed ones and tells you why."
+- The "Open calendar" button goes to a fake page. Do not click it on camera.
 
 ## If something breaks mid-take
 
-Stop, fix, re-record. Never narrate around a broken screen. The freeze is 15:00; the recording window is 40
-minutes, which is enough for three takes.
+Stop, fix, re-record. Never narrate around a broken screen. A take is two and a half minutes of real time; three
+takes fit in fifteen.
