@@ -1,42 +1,42 @@
 # Visual identity for the Streamlit page (apps/agent/trip_agent/ui.py). Only Lane A edits this alongside ui.py.
-# Palette: warm parchment and honey tones, an amber "book it" accent, olive for verified, brick for
-# failed/removed. Warm on purpose: the page should feel like a lantern-lit travel notebook, not a ledger.
+# A travel brand: white ground, ink text, one ocean-blue accent for the things you click, the stop photos
+# carrying the colour. Verified is green, draft is amber, failed and removed are red, and only those.
 
 [theme]
 base = "light"
 
-primaryColor = "#C1650B"
-backgroundColor = "#F5EBD8"
-secondaryBackgroundColor = "#EDDCB6"
-textColor = "#3A2A1E"
+primaryColor = "#0B5FD9"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F3F5F8"
+textColor = "#14171C"
 
-font = "IBM Plex Mono, monospace"
-headingFont = "Newsreader, serif"
-codeFont = "IBM Plex Mono, monospace"
+font = "Manrope, sans-serif"
+headingFont = "Bricolage Grotesque, sans-serif"
+codeFont = "JetBrains Mono, monospace"
 baseFontSize = 15
-baseRadius = "0.5rem"
-buttonRadius = "0.5rem"
+baseRadius = "0.6rem"
+buttonRadius = "999px"
 
-borderColor = "#CEAD79"
-dataframeBorderColor = "#CEAD79"
-dataframeHeaderBackgroundColor = "#EDDCB6"
+borderColor = "#E1E5EB"
+dataframeBorderColor = "#E1E5EB"
+dataframeHeaderBackgroundColor = "#F3F5F8"
 showWidgetBorder = true
 
-linkColor = "#C1650B"
-linkUnderline = true
+linkColor = "#0B5FD9"
+linkUnderline = false
 
-greenColor = "#5E7C3A"
-greenTextColor = "#4A6430"
-greenBackgroundColor = "#DFE7C6"
+greenColor = "#1B8A5A"
+greenTextColor = "#146B45"
+greenBackgroundColor = "#E3F5EC"
 
-orangeColor = "#A67C3D"
-orangeTextColor = "#8C6329"
-orangeBackgroundColor = "#F1DFB6"
+orangeColor = "#B7791F"
+orangeTextColor = "#8F5E14"
+orangeBackgroundColor = "#FBF0DA"
 
-redColor = "#9C3D28"
-redTextColor = "#86321F"
-redBackgroundColor = "#EBD3C2"
+redColor = "#D23F31"
+redTextColor = "#A82F24"
+redBackgroundColor = "#FBE5E2"
 
-blueColor = "#C1650B"
-blueTextColor = "#C1650B"
-blueBackgroundColor = "#F5DFB8"
+blueColor = "#0B5FD9"
+blueTextColor = "#0B5FD9"
+blueBackgroundColor = "#E4EDFB"
