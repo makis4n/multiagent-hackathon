@@ -97,6 +97,17 @@ ORIGINS = [
     "Tokyo Narita (NRT)",
 ]
 
+PRODUCT = "Tripia"
+# The mark: a paper plane gliding down into an inbox tray. Inline SVG, currentColor, so it takes the text colour
+# wherever it sits and the accent where the brand does.
+LOGO_SVG = """<svg class="logo" viewBox="0 0 48 48" width="{size}" height="{size}" fill="none" aria-hidden="true">
+<path d="M8 27h9l3 5h8l3-5h9v11a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3V27z" fill="currentColor" opacity="0.18"/>
+<path d="M8 27h9l3 5h8l3-5h9m-32 0v11a3 3 0 0 0 3 3h26a3 3 0 0 0 3-3V27M8 27l4-8m28 8-4-8"
+ stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M41 5 21 14l7 3.5L31 25l10-20z" fill="currentColor"/>
+<path d="M28 17.5 41 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+</svg>"""
+
 FONT_LINK = (
     "https://fonts.googleapis.com/css2?"
     "family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800"
@@ -116,6 +127,12 @@ STYLE_BLOCK = f"""
 [data-testid="stAppViewContainer"] p, [data-testid="stAppViewContainer"] li {{ line-height: 1.55; }}
 h1, h2, h3 {{ font-family: "Bricolage Grotesque", sans-serif; letter-spacing: -0.01em; }}
 
+.brand {{ display: flex; align-items: center; gap: 0.55rem; color: var(--accent); margin: 0 0 1rem 0; }}
+.brand-name {{
+  font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em;
+  color: var(--ink);
+}}
+.brand.hero-brand {{ margin-bottom: 0.4rem; }}
 .hero {{ margin: 0.2rem 0 1.2rem 0; }}
 .hero-kicker {{
   font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent);
@@ -307,13 +324,14 @@ LOADER_HTML = """
 
 def main() -> None:
     load_dotenv()
-    st.set_page_config(page_title="Trip agent", layout="wide")
+    st.set_page_config(page_title=PRODUCT, layout="wide")
     st.html(STYLE_BLOCK)
     if "tools" not in st.session_state:
         st.session_state["tools"] = build_tools()
     tools: Tools = st.session_state["tools"]
     slot = st.empty()  # the loading bar, at the top of the main column while a stage runs
     with st.sidebar:
+        brand(size=26)
         brief_form(tools, slot)
         state = current_state()
         if state is not None and state.report is None:
@@ -343,10 +361,17 @@ def loader(label: str, tips: list[str], seconds: int) -> None:
     components.html(body, height=96)
 
 
+def brand(size: int = 26, extra_class: str = "") -> None:
+    st.markdown(
+        f'<div class="brand {extra_class}">{LOGO_SVG.format(size=size)}<span class="brand-name">{PRODUCT}</span></div>',
+        unsafe_allow_html=True,
+    )
+
+
 def hero() -> None:
+    brand(size=34, extra_class="hero-brand")
     st.markdown(
         '<div class="hero">'
-        '<p class="hero-kicker">Trip agent</p>'
         '<h1 class="hero-title">Where next?</h1>'
         '<p class="hero-tag">A plan built from what people posted this month, checked against real opening '
         "hours and travel times, booked only when you say so.</p>"
