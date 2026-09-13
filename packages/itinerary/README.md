@@ -1,6 +1,6 @@
 # trip-itinerary
 
-Status: **unclaimed**. Claim it by putting your name on this line in your first commit.
+Status: **owner Lane C (keaenlim)**.
 
 Lane C. Four factories in `trip_itinerary/__init__.py`, each behind its own flag:
 
