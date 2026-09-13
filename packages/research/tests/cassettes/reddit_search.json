@@ -1,0 +1,64 @@
+{
+  "kind": "Listing",
+  "data": {
+    "after": null,
+    "children": [
+      {
+        "kind": "t3",
+        "data": {
+          "id": "aa1",
+          "title": "Tsukiji Outer Market at 7am is still the move",
+          "selftext": "Tamagoyaki stand had no queue before 8.   Skip the tuna auction hype, it is a bus tour trap now.",
+          "subreddit": "JapanTravel",
+          "permalink": "/r/JapanTravel/comments/aa1/aa1/",
+          "created_utc": 1788080400.0,
+          "ups": 1840,
+          "num_comments": 212,
+          "over_18": false
+        }
+      },
+      {
+        "kind": "t3",
+        "data": {
+          "id": "aa2",
+          "title": "teamLab Planets vs Borderless in 2026",
+          "selftext": "Planets is the wet one, book the 10am slot. An hour is enough unless you are shooting photos.",
+          "subreddit": "Tokyo",
+          "permalink": "/r/Tokyo/comments/aa2/aa2/",
+          "created_utc": 1784019600.0,
+          "ups": 640,
+          "num_comments": 88,
+          "over_18": false
+        }
+      },
+      {
+        "kind": "t3",
+        "data": {
+          "id": "aa3",
+          "title": "Yanaka Ginza is the old Tokyo people keep asking for",
+          "selftext": "",
+          "subreddit": "JapanTravel",
+          "permalink": "/r/JapanTravel/comments/aa3/aa3/",
+          "created_utc": 1759395600.0,
+          "ups": 95,
+          "num_comments": 14,
+          "over_18": false
+        }
+      },
+      {
+        "kind": "t3",
+        "data": {
+          "id": "aa4",
+          "title": "NSFW nightlife thread",
+          "selftext": "should be filtered",
+          "subreddit": "Tokyo",
+          "permalink": "/r/Tokyo/comments/aa4/aa4/",
+          "created_utc": 1785574800.0,
+          "ups": 500,
+          "num_comments": 60,
+          "over_18": true
+        }
+      }
+    ]
+  }
+}
