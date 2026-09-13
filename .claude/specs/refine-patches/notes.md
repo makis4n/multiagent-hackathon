@@ -95,3 +95,34 @@ through to resolve, verify and book with the itinerary unchanged.
    They part company only on non-ASCII case folding. Recorded, not worth changing.
 7. A stop failing two checks is deduped by the report itself, so one patch per failed stop holds. No test plants
    that shape, and a real verifier will produce it.
+
+| 7 wire build_planner | 0271091 | pass | eight mutations reproduced, annotation proven load-bearing |
+| whole branch | 0271091 | ready for PR, two scope items | see below |
+
+## Task 7 and the final review
+
+Task 6's carried items are all closed: the silent-stop remove, the shared replacement place, and the stop failing
+two checks each got a test. Items 4 and 5, piping `last_dropped` into the call log, were declined on purpose. That
+decision now lives in the README as well as here.
+
+Two corrections the orchestrator made after the final review:
+
+1. **A prompt bug only visible across two tasks.** The loop merges the new answers into the brief before calling
+   `refine`, so the refine prompt printed the same answer twice, once as just given and once as collected earlier,
+   telling the model a fresh answer was also an old one. Fixed with `earlier_answers`, and pinned by
+   `test_an_answer_from_this_round_is_not_also_shown_as_an_earlier_one`, watched red first: the count was 2, not 1.
+2. **Spec drift, corrected in the spec not the code.** Behaviour 4 said each candidate is tested against a throwaway
+   copy. The code applies them in order onto an accumulating copy, which is the better behaviour because a later
+   patch may depend on an earlier one. The sentence now says what the code does, and names `KeyError` too.
+
+Open before the pull request, both for the user to decide:
+
+- **Scope.** The tooling commit `d8c4fb4` carries the spec skills, the agents and the calendar spec. That is a
+  second change riding in an issue #14 branch. Split it, or open the PR saying so with Lane A's agreement.
+- **`.gitignore`.** An uncommitted line ignores `.claude/specs` while six spec files are tracked on this branch.
+  The intent contradicts itself. Not the orchestrator's to decide.
+
+Honest-PR requirements the final review named: the pull request body must say, in the summary and not a footnote,
+that `draft` is still the fake one under `REAL_PLANNER=1`, and that drops are recorded on the planner object where
+nothing outside the tests reads them. `REAL_PLANNER=1` has never met a live model, so what stays untested is that
+Gemini fills the flat schemas at all and that the prompts produce usable content.

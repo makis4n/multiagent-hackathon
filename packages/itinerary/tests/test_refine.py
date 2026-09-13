@@ -209,6 +209,17 @@ def test_the_prompt_is_readable_without_a_model() -> None:
     assert "—" not in prompt
 
 
+def test_an_answer_from_this_round_is_not_also_shown_as_an_earlier_one() -> None:
+    """The loop merges the new answers into the brief before calling refine, so both headings would show them."""
+    just_given = {"Anything to skip?": "skip: Shibuya Sky"}
+    merged = brief(answers={**ANSWERS, **just_given})
+
+    prompt = build_refine_prompt(merged, itinerary(), just_given, signals())
+
+    assert prompt.count("skip: Shibuya Sky") == 1
+    assert "Slow mornings." in prompt
+
+
 class Raiser:
     """Stands in for complete_json and fails the way the provider fails."""
 

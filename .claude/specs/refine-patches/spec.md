@@ -32,8 +32,9 @@ table says so in the same commit, so nobody reads a fake draft as a real one.
 
 3. Returns `list[ItineraryPatch]` and nothing else. It never returns an `Itinerary`, and the loop stays the only
    thing that applies a patch.
-4. Every returned patch applies cleanly. Each candidate is tested against a throwaway copy with `apply_patch`
-   first; one that raises `ValueError` is dropped with its reason recorded, never returned and never raised.
+4. Every returned patch applies cleanly. Candidates are applied in order onto an accumulating copy with
+   `apply_patch`, so a later patch may depend on an earlier one; one that raises `ValueError` or `KeyError` is
+   dropped with its reason recorded, never returned and never raised.
 5. `remove`, `move` and `replace` name a `stop_id` that exists in the itinerary. `add` carries a stop whose id is
    not already in use and a `target_day` inside the itinerary.
 6. A stop the model adds or substitutes in carries a category, a one-sentence `why`, and `signal_ids` that are a

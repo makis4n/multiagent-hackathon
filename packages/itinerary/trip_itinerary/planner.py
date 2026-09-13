@@ -159,6 +159,12 @@ def summarise_answers(brief: TripBrief) -> str:
     return summarise_given_answers(brief.answers)
 
 
+def earlier_answers(brief: TripBrief, just_given: dict[str, str]) -> dict[str, str]:
+    """The answers from before this round. The loop merges the new ones into the brief before calling refine,
+    so without this the same answer prints under both headings and the model is told a fresh answer is an old one."""
+    return {question: answer for question, answer in brief.answers.items() if question not in just_given}
+
+
 def summarise_given_answers(answers: dict[str, str]) -> str:
     """One line per question and answer. Pure."""
     if not answers:
@@ -228,7 +234,7 @@ def build_refine_prompt(brief: TripBrief, itinerary: Itinerary, answers: dict[st
         brief=summarise_brief(brief),
         itinerary=summarise_itinerary(itinerary),
         answers=summarise_given_answers(answers),
-        answered=summarise_answers(brief),
+        answered=summarise_given_answers(earlier_answers(brief, answers)),
         signals=summarise_signals(signals),
         limit=MAX_PATCHES,
     )
