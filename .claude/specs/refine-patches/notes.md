@@ -38,3 +38,19 @@ The reviewer mutation-tested the seven tests from a copy outside the repo: remov
    fixture that raises on any un-stubbed call.
 5. `test_skips_answered_questions` carries the blank guard, the dedupe guard and the answered filter at once. A
    regression in any of the three reports as the same failure. Worth splitting when someone is next in that file.
+
+| 4 refine and the apply filter | 4d33e76 | pass with notes | red-first reproduced by the reviewer, both directions |
+
+## Task 4 notes, carried forward
+
+1. **For task 5.** `last_dropped.extend(mapped.dropped)` in `planner.py` is the one new line with no test behind it:
+   replacing it with `pass` leaves the suite green, so mapping-layer drops go unrecorded as far as the tests know.
+   A payload with an unknown op, asserted into `last_dropped`, closes it.
+2. The drop-line index numbering differs between the two layers, so one round can produce two lines both reading
+   `patch 1`. These lines are the operator's only view of what the model asked for, so make them distinguishable.
+3. `test_refine.py` pins the day-range drop with a bare `"9" in line`, which would also match `patch 9:`. It does
+   discriminate today and it does go red under mutation. Tighten it to the full phrase when next in that file.
+4. Conformant by design, recorded so nobody "fixes" it: a patch depending on a stop an earlier patch created is
+   rejected by the mapping, because Behaviour 5 requires a stop id that exists in the itinerary as passed in.
+5. Once the cap is reached the remaining candidates are recorded as over-the-cap without being applied, so one that
+   was also inapplicable is reported only as a cap drop. Cheaper, and harmless.
