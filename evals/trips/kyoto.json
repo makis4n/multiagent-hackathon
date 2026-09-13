@@ -6,5 +6,10 @@
   "end_date": "2026-11-26",
   "travellers": 2,
   "budget_band": "mid",
-  "styles": ["temples", "food", "gardens"]
+  "styles": [
+    "temples",
+    "food",
+    "gardens"
+  ],
+  "destination_code": "OSA"
 }

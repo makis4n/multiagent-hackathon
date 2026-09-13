@@ -30,7 +30,10 @@ class TripBrief(BaseModel):
 
     id: str
     destination: str
-    origin: str = Field(description="where the traveller flies from: city or IATA code")
+    origin: str = Field(description="where the traveller flies from: an IATA airport or city code, e.g. ARN")
+    destination_code: str | None = Field(
+        default=None, description="IATA airport or city code for the destination, e.g. TYO; booking uses it"
+    )
     start_date: dt.date
     end_date: dt.date
     travellers: int = 2
@@ -43,6 +46,11 @@ class TripBrief(BaseModel):
         if self.end_date < self.start_date:
             raise ValueError("end_date is before start_date")
         return self
+
+    @property
+    def airports(self) -> tuple[str, str]:
+        """(origin, destination) codes for a flight search; the destination code falls back to the name."""
+        return self.origin.strip().upper(), (self.destination_code or self.destination).strip().upper()
 
     @property
     def nights(self) -> int:
@@ -89,6 +97,7 @@ class Place(BaseModel):
     )
     rating: float | None = None
     price_level: int | None = None
+    photo_url: str | None = Field(default=None, description="a public image URL for the place, if the resolver has one")
 
     def is_open(self, on: dt.date, at: dt.time) -> bool | None:
         """True or False when hours are known, None when unknown."""
@@ -263,6 +272,14 @@ def idempotency_key(brief_id: str, option: BookingOption) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()[:24]
 
 
+class Replacement(BaseModel):
+    """A stop the verifier rejected and what took its place. `new` is None when it was removed."""
+
+    old: Stop
+    new: Stop | None
+    reason: str
+
+
 class TripState(BaseModel):
     """Everything the loop produced for one brief. The UI renders this; the evals score it."""
 
@@ -272,6 +289,7 @@ class TripState(BaseModel):
     questions: list[str] = Field(default_factory=list)
     places: dict[str, Place] = Field(default_factory=dict)
     report: VerificationReport | None = None
+    replacements: list[Replacement] = Field(default_factory=list)
     options: list[BookingOption] = Field(default_factory=list)
     orders: list[BookingOrder] = Field(default_factory=list)
     calendar_url: str | None = None

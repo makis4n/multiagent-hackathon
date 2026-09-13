@@ -35,7 +35,7 @@ known-first-party = ["trip_core", "trip_research", "trip_itinerary", "trip_booki
 [tool.basedpyright]
 typeCheckingMode = "standard"
 pythonVersion = "3.12"
-include = ["packages", "apps", "evals"]
+include = ["packages", "apps", "evals", "scripts"]
 exclude = ["**/.venv", "**/__pycache__"]
 
 [tool.pytest.ini_options]

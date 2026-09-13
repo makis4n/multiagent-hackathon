@@ -18,6 +18,24 @@ fixture run. The base owner coordinates and merges.
 
 ---
 
+## 0. Status at 13:00 PT
+
+On main and green (97 tests, CI, `make fixture`): the base, the Gemini planner (C1, by A), Google Places and
+Routes verification (C2, by A), Lane B's research (YouTube and Exa scoped to reddit.com, merged as PR #13), the
+staged UI with the questions step and the swap warnings, failure injection for the demo, evals 10/10 on real
+planner, places and verifier (`evals/results/af0f849.md`), and the brief filled to the lanes' remaining rows.
+
+In progress: Lane D flights (search working in Duffel test mode, order and gate next). Open: C3 (model-backed
+refine and replacement) and C4 (calendar). Cut: activities, Duffel Stays (needs a commercial agreement), Reddit's
+own API (policy), TikTok. Model: Claude (Sonnet 5 main, Haiku 4.5 fast) since 13:40 PT; Gemini stays behind LLM_PROVIDER=gemini. Before that, Flash Lite for everything; the bigger Flash models were unusable on the
+free tier today. Transit: Routes returns no transit route on our key, so travel time is a labelled driving-based
+estimate.
+
+Demo path stays Tokyo. Keys each machine needs for a full real run: `ANTHROPIC_API_KEY`, `GOOGLE_MAPS_API_KEY`,
+`YOUTUBE_API_KEY`, `EXA_API_KEY`, `DUFFEL_API_KEY`.
+
+---
+
 ## 1. Timeline
 
 Times are PT with CEST in brackets. SGT is CEST plus 6.
@@ -58,7 +76,7 @@ multiagent-hackathon/
     models.py                 pydantic models below
     tools.py                  Protocols below
     fakes.py                  a deterministic offline fake for every Protocol
-    llm.py                    complete_json(prompt, Schema) over Gemini
+    llm.py                    complete_json(prompt, Schema) over Claude (Gemini fallback)
     fixtures/tokyo.json       the seed trip: Tokyo, 5 days, food and art, 2 travellers, plus 18 signals
   packages/research/          Owner: B. Reddit, YouTube, web search -> Signal[]
   packages/itinerary/         Owner: C. draft, patch, verify, calendar
@@ -221,11 +239,11 @@ Catch-up format (12:45 and 14:00), three lines per lane: done, next, blocked. Ne
 |---|---|---|
 | Language | Python 3.13 (3.12 works), uv workspace, pydantic v2 | one toolchain, every API here has a Python SDK, evals are pytest |
 | Quality gate | ruff, pyright (basic), pytest, respx for recorded HTTP | `make check` is CI |
-| Model | google-genai SDK: Gemini 2.5 Pro for drafting and refinement, Gemini 2.5 Flash for scoring and extraction, both through `trip_core.llm.complete_json` | one wrapper, flat JSON schemas, model names overridable in `.env` |
+| Model | google-genai SDK: Gemini Flash Lite for everything today (the bigger Flash models are overloaded or out of quota on the free tier), both through `trip_core.llm.complete_json` | one wrapper, flat JSON schemas, model names overridable in `.env` |
 | Loop | hand-rolled, about 80 lines, one function per stage | no framework unknowns in a five-hour build |
-| Research | PRAW, YouTube Data API v3 plus youtube-transcript-api, Exa or Tavily scoped to reddit.com | TikTok has no usable API; skip it |
-| Places | Google Places API (New) text search and place details with `regularOpeningHours`; Routes API `computeRoutes` transit | deterministic verification |
-| Booking | Duffel test mode (flights and stays); Viator affiliate or Amadeus Tours and Activities for activity search and deep links | real search results, sandbox orders with confirmation numbers |
+| Research | YouTube Data API v3 and Exa scoped to reddit.com (shipped); Reddit's own API written but unwired | TikTok has no usable API; Reddit's policy needs approval |
+| Places | Google Places API (New) text search and details with `regularOpeningHours`; Routes API `computeRoutes`, driving-based estimate where transit returns nothing | deterministic verification |
+| Booking | Duffel test mode, flights only (Stays needs a commercial agreement; activities cut) | real search results, sandbox orders with confirmation numbers |
 | Calendar | Google Calendar API v3, one OAuth desktop credential | 30 lines, demos well, counts as an app |
 | UI | Streamlit, one file, owned by A | zero frontend build; chat left, itinerary right, confirm modal |
 | Evals | pytest runner over `evals/trips`, results table committed per SHA | feeds the brief directly |
@@ -234,7 +252,7 @@ Catch-up format (12:45 and 14:00), three lines per lane: done, next, blocked. Ne
 External apps: Reddit, YouTube, Google Places and Routes, Duffel, Viator or Amadeus, Google Calendar. Six, against
 a minimum of three.
 
-Decided at 11:00 PT: Python and Gemini. Neither changes today.
+Decided at 11:00 PT: Python and Gemini. Revised at 13:40 PT: Claude, after the Gemini balance ran out; Gemini stays as the fallback provider.
 
 ---
 
@@ -252,7 +270,7 @@ Checks reported per trip in `evals/results/<sha>.md`:
 | resolved | every stop resolves to a Google place_id | C |
 | verified | at least 90 percent of stops pass exists, open, reachable, in_window | C |
 | transit | 45 min or less between consecutive stops | C |
-| bookable | at least one flight option and one stay option returned | D |
+| bookable | at least one flight option returned (stays: no Duffel Stays access, fake only) | D |
 | gated | zero orders without `confirmed_by_user_at`; injected 500 yields exactly one order | D |
 | loop | the full run completes with no unhandled exception, call log complete | A |
 

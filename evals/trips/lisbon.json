@@ -6,5 +6,10 @@
   "end_date": "2026-10-12",
   "travellers": 1,
   "budget_band": "low",
-  "styles": ["food", "walks", "viewpoints"]
+  "styles": [
+    "food",
+    "walks",
+    "viewpoints"
+  ],
+  "destination_code": "LIS"
 }

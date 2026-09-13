@@ -1,4 +1,4 @@
-.PHONY: sync check lint typecheck test fixture evals ui format
+.PHONY: sync check lint typecheck test fixture evals ui format smoke-llm
 
 sync:
 	uv sync --all-packages
@@ -27,3 +27,6 @@ ui:
 format:
 	uv run ruff format .
 	uv run ruff check --fix .
+
+smoke-llm:
+	uv run python scripts/smoke_llm.py

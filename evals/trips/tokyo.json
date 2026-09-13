@@ -6,5 +6,10 @@
   "end_date": "2026-11-16",
   "travellers": 2,
   "budget_band": "mid",
-  "styles": ["food", "art", "neighbourhood walks"]
+  "styles": [
+    "food",
+    "art",
+    "neighbourhood walks"
+  ],
+  "destination_code": "TYO"
 }

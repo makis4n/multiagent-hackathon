@@ -340,12 +340,13 @@ class FakeBooking:
     def search(self, brief: TripBrief, kind: BookingKind) -> list[BookingOption]:
         factor = {BudgetBand.low: 1, BudgetBand.mid: 2, BudgetBand.high: 4}[brief.budget_band]
         if kind == BookingKind.flight:
+            origin, destination = brief.airports
             return [
                 BookingOption(
                     kind=kind,
                     provider=self.name,
-                    provider_ref=f"off_{slug(brief.origin)}_{slug(brief.destination)}",
-                    title=f"{brief.origin} to {brief.destination}, return, {brief.travellers} pax",
+                    provider_ref=f"off_{slug(origin)}_{slug(destination)}",
+                    title=f"{origin} to {destination}, return, {brief.travellers} pax",
                     price_minor=factor * 45_000 * brief.travellers,
                     details={"depart": brief.start_date.isoformat(), "return": brief.end_date.isoformat()},
                 )

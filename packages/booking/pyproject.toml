@@ -2,7 +2,7 @@
 name = "trip-booking"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = ["trip-core"]
+dependencies = ["trip-core", "httpx>=0.27"]
 
 [build-system]
 requires = ["hatchling"]
