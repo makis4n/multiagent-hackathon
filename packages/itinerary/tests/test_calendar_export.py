@@ -8,7 +8,7 @@ import httpx
 import pytest
 import respx
 
-from trip_core.models import Itinerary, TripBrief
+from trip_core.models import Day, Itinerary, Stop, TripBrief
 from trip_itinerary.calendar import CALENDAR_API_BASE, CALENDAR_TIMEZONE_ENV, CalendarClient, CalendarExporter
 from trip_itinerary.credentials import StaticTokenProvider
 
@@ -35,6 +35,52 @@ def brief() -> TripBrief:
 
 def itinerary() -> Itinerary:
     return Itinerary(id="it-tokyo-2026-11", brief_id="brief-tokyo")
+
+
+def itinerary_with_stops() -> Itinerary:
+    return Itinerary(
+        id="it-tokyo-2026-11",
+        brief_id="brief-tokyo",
+        days=[
+            Day(
+                date=dt.date(2026, 11, 12),
+                stops=[
+                    Stop(
+                        id="tsukiji",
+                        day=0,
+                        start=dt.time(10),
+                        end=dt.time(12),
+                        place_name="Tsukiji Outer Market",
+                        category="food",
+                        why="Fresh sushi for breakfast.",
+                    ),
+                    Stop(
+                        id="teamlab",
+                        day=0,
+                        start=dt.time(14, 30),
+                        end=dt.time(16),
+                        place_name="teamLab Planets",
+                        category="sight",
+                        why="Immersive digital art.",
+                    ),
+                ],
+            ),
+            Day(
+                date=dt.date(2026, 11, 13),
+                stops=[
+                    Stop(
+                        id="yanaka",
+                        day=1,
+                        start=dt.time(9, 15),
+                        end=dt.time(11, 45),
+                        place_name="Yanaka Ginza",
+                        category="walk",
+                        why="A traditional shopping street.",
+                    )
+                ],
+            ),
+        ],
+    )
 
 
 def test_creates_a_calendar_and_returns_its_url() -> None:
@@ -79,3 +125,38 @@ def test_calendar_timezone_defaults_to_utc(monkeypatch: pytest.MonkeyPatch) -> N
             CalendarExporter(client).export(itinerary(), brief())
 
     assert json.loads(created.calls.last.request.content)["timeZone"] == "UTC"
+
+
+def test_one_event_per_stop_uses_day_dates_and_calendar_timezone() -> None:
+    with respx.mock(base_url=CALENDAR_API_BASE) as mock:
+        mock.get("/users/me/calendarList").mock(
+            return_value=httpx.Response(200, json=recorded("existing_event_calendar_list"))
+        )
+        inserted = mock.post("/calendars/trip-calendar/events").mock(
+            return_value=httpx.Response(200, json=recorded("inserted_event"))
+        )
+        with CalendarClient(StaticTokenProvider("fake-token")) as client:
+            CalendarExporter(client, timezone="Europe/Stockholm").export(itinerary_with_stops(), brief())
+
+    payloads = [json.loads(call.request.content) for call in inserted.calls]
+    assert inserted.call_count == 3
+    assert payloads == [
+        {
+            "summary": "Tsukiji Outer Market",
+            "description": "Fresh sushi for breakfast.\n\nItinerary: it-tokyo-2026-11",
+            "start": {"dateTime": "2026-11-12T10:00:00", "timeZone": "Europe/Stockholm"},
+            "end": {"dateTime": "2026-11-12T12:00:00", "timeZone": "Europe/Stockholm"},
+        },
+        {
+            "summary": "teamLab Planets",
+            "description": "Immersive digital art.\n\nItinerary: it-tokyo-2026-11",
+            "start": {"dateTime": "2026-11-12T14:30:00", "timeZone": "Europe/Stockholm"},
+            "end": {"dateTime": "2026-11-12T16:00:00", "timeZone": "Europe/Stockholm"},
+        },
+        {
+            "summary": "Yanaka Ginza",
+            "description": "A traditional shopping street.\n\nItinerary: it-tokyo-2026-11",
+            "start": {"dateTime": "2026-11-13T09:15:00", "timeZone": "Europe/Stockholm"},
+            "end": {"dateTime": "2026-11-13T11:45:00", "timeZone": "Europe/Stockholm"},
+        },
+    ]

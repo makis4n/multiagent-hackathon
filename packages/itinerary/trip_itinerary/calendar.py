@@ -12,6 +12,7 @@ Status mapping, from the Calendar API error guide and the Google HTTP/JSON error
 
 from __future__ import annotations
 
+import datetime as dt
 import logging
 import os
 from collections.abc import Mapping
@@ -21,7 +22,7 @@ from urllib.parse import quote
 
 import httpx
 
-from trip_core.models import Itinerary, RetryableError, ToolError, TripBrief
+from trip_core.models import Itinerary, RetryableError, Stop, ToolError, TripBrief
 from trip_itinerary.credentials import TokenProvider
 
 log = logging.getLogger(__name__)
@@ -57,6 +58,7 @@ class CalendarExporter:
                 json_body={"summary": _calendar_name(brief), "timeZone": self._timezone},
             )
             calendar_id = _calendar_id(created, "create calendar")
+        self._insert_events(calendar_id, itinerary)
         return f"{CALENDAR_WEB_URL}{quote(calendar_id, safe='@')}"
 
     def _find_calendar_id(self, name: str) -> str | None:
@@ -76,6 +78,12 @@ class CalendarExporter:
             if not isinstance(next_token, str) or not next_token:
                 raise ToolError("the Google Calendar API returned an invalid calendar list page token")
             page_token = next_token
+
+    def _insert_events(self, calendar_id: str, itinerary: Itinerary) -> None:
+        path = f"/calendars/{quote(calendar_id, safe='')}/events"
+        for day in itinerary.days:
+            for stop in day.stops:
+                self._client.request("POST", path, json_body=_event_body(day.date, stop, itinerary.id, self._timezone))
 
 
 class CalendarClient:
@@ -190,3 +198,12 @@ def _calendar_id(calendar: Mapping[str, Any], source: str) -> str:
     if not isinstance(calendar_id, str) or not calendar_id:
         raise ToolError(f"the Google Calendar API returned a {source} without an id")
     return calendar_id
+
+
+def _event_body(date: dt.date, stop: Stop, itinerary_id: str, timezone: str) -> dict[str, object]:
+    return {
+        "summary": stop.place_name,
+        "description": f"{stop.why}\n\nItinerary: {itinerary_id}",
+        "start": {"dateTime": dt.datetime.combine(date, stop.start).isoformat(), "timeZone": timezone},
+        "end": {"dateTime": dt.datetime.combine(date, stop.end).isoformat(), "timeZone": timezone},
+    }
