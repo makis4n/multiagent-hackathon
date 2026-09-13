@@ -1,0 +1,62 @@
+{
+  "kind": "youtube#searchListResponse",
+  "regionCode": "SE",
+  "pageInfo": {
+    "totalResults": 4,
+    "resultsPerPage": 4
+  },
+  "items": [
+    {
+      "kind": "youtube#searchResult",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "vidAAA"
+      },
+      "snippet": {
+        "title": "Tsukiji Outer Market food tour &amp; what to skip",
+        "description": "We ate through Tsukiji Outer Market at 7am. Tamagoyaki stand had no queue.",
+        "publishedAt": "2026-08-30T09:00:00Z",
+        "channelTitle": "Tokyo Lens"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "vidBBB"
+      },
+      "snippet": {
+        "title": "teamLab Planets vs Borderless in 2026: which one?",
+        "description": "Planets is the wet one. Book the 10am slot at teamLab Planets.",
+        "publishedAt": "2026-07-14T09:00:00Z",
+        "channelTitle": "Tokyo Lens"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "id": {
+        "kind": "youtube#video",
+        "videoId": "vidCCC"
+      },
+      "snippet": {
+        "title": "Yanaka Ginza &#39;old Tokyo&#39; walking guide",
+        "description": "Yanaka Ginza and Nippori in one slow afternoon.",
+        "publishedAt": "2025-10-02T09:00:00Z",
+        "channelTitle": "Tokyo Lens"
+      }
+    },
+    {
+      "kind": "youtube#searchResult",
+      "id": {
+        "kind": "youtube#channel",
+        "channelId": "chanXYZ"
+      },
+      "snippet": {
+        "title": "A channel, not a video",
+        "description": "",
+        "publishedAt": "2026-01-01T00:00:00Z",
+        "channelTitle": "Someone"
+      }
+    }
+  ]
+}
