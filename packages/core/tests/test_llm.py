@@ -69,3 +69,84 @@ def test_two_malformed_answers_propagate(monkeypatch: pytest.MonkeyPatch) -> Non
     monkeypatch.setattr(llm, "_complete_once", hopeless)
     with pytest.raises(SchemaError):
         llm.complete_json("q", Ping)
+
+
+class _Block:
+    def __init__(self, type: str, text: str = "") -> None:
+        self.type = type
+        self.text = text
+
+
+class _Response:
+    def __init__(self, blocks: list[_Block], stop_reason: str = "tool_use") -> None:
+        self.content = blocks
+        self.stop_reason = stop_reason
+
+
+class _Messages:
+    def __init__(self, outcome: object) -> None:
+        self.outcome = outcome
+        self.requests: list[dict[str, object]] = []
+
+    def create(self, **kwargs: object) -> object:
+        self.requests.append(kwargs)
+        if isinstance(self.outcome, Exception):
+            raise self.outcome
+        return self.outcome
+
+
+class _Client:
+    def __init__(self, outcome: object) -> None:
+        self.messages = _Messages(outcome)
+
+
+def _use(monkeypatch: pytest.MonkeyPatch, outcome: object) -> _Client:
+    client = _Client(outcome)
+    monkeypatch.setattr(llm, "anthropic_client", lambda: client)
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    return client
+
+
+def test_claude_answers_in_the_schema(monkeypatch: pytest.MonkeyPatch) -> None:
+    client = _use(monkeypatch, _Response([_Block("thinking"), _Block("text", '{"city": "Nara"}')]))
+    assert llm.complete_json("q", Ping, system="s").city == "Nara"
+    sent = client.messages.requests[0]
+    output = sent["output_config"]
+    assert isinstance(output, dict)
+    assert output["format"] == {"type": "json_schema", "schema": llm.strict(Ping.model_json_schema())}
+    assert output["format"]["schema"]["additionalProperties"] is False
+    assert output["effort"] == "low"
+    assert sent["system"] == "s"
+
+
+def test_effort_is_only_sent_to_the_claude_5_family() -> None:
+    assert llm.CLAUDE_5.search("claude-sonnet-5") and llm.CLAUDE_5.search("claude-opus-5-20260501")
+    assert not llm.CLAUDE_5.search("claude-haiku-4-5-20251001")
+
+
+def test_claude_wrong_shape_is_a_schema_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    _use(monkeypatch, _Response([_Block("text", '{"town": "Nara"}')]))
+    with pytest.raises(SchemaError):
+        llm.complete_json("q", Ping)
+
+
+def test_claude_overloaded_is_retryable(monkeypatch: pytest.MonkeyPatch) -> None:
+    import anthropic
+    import httpx2 as httpx
+
+    response = httpx.Response(529, request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"))
+    _use(monkeypatch, anthropic.APIStatusError("overloaded", response=response, body=None))
+    monkeypatch.setattr(llm.time, "sleep", lambda seconds: None)
+    with pytest.raises(RetryableError):
+        llm.complete_json("q", Ping, attempts=2)
+
+
+def test_claude_bad_request_is_not_retried(monkeypatch: pytest.MonkeyPatch) -> None:
+    import anthropic
+    import httpx2 as httpx
+
+    response = httpx.Response(400, request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"))
+    client = _use(monkeypatch, anthropic.APIStatusError("bad request", response=response, body=None))
+    with pytest.raises(ToolError):
+        llm.complete_json("q", Ping)
+    assert len(client.messages.requests) == 1

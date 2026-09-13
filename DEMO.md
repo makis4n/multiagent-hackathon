@@ -29,14 +29,17 @@ Reload the page once so the caption reads the real tools you expect plus "bookin
 
 ## Beats
 
-Measured on real tools at 13:20 PT: research 12 s, draft 7 s, verification 22 s. Two waits, about 19 s and 22 s.
+Measured on real tools at 13:20 PT on Gemini: research 12 s, draft 7 s, verification 22 s. Re-measured at 14:05 PT on
+Claude (Sonnet 5, effort low): research 28 s, draft 22 s, questions 4 s, verification with one replacement pass 38 s.
+Two waits, about 55 s and 40 s; the narration below covers both, and a rehearsal run right before recording is the
+only way to know today's numbers.
 Talk through both; never stare at a spinner in silence. One take fits two minutes without cuts.
 
 | at | do | on screen | say |
 | --- | --- | --- | --- |
 | 0:00 | Read the filled form, click Plan trip. | The brief. | "Five days in Tokyo for two people who like food and art. One form, then the agent works." |
 | 0:10 | Wait, talking. | "Researching and drafting". | "It's reading about a hundred recent posts right now: YouTube vlogs and Reddit threads via web search, with dates. Not a guidebook, what people said this month." |
-| 0:28 | Point at the source list. | "What people are saying", titles with source and date. | "Every source is dated. Then Gemini drafts from those, and only those." |
+| 0:28 | Point at the source list. | "What people are saying", titles with source and date. | "Every source is dated. Then Claude drafts from those, and only those." |
 | 0:38 | Scroll the draft once. | Day tables, status draft. | "First draft. Every stop cites the post it came from. Nothing is checked yet, and it says so." |
 | 0:48 | Answer one question: type `skip: ` plus a place name copied exactly from the draft. Click Check and finish. | The questions. | "It asks instead of guessing. An answer becomes an edit to the plan, never a rewrite." |
 | 0:58 | Wait, talking. | "Refining and verifying every stop". | "Now every stop goes to Google: does the place exist, is it open at that hour on that weekday, can you get there in time from the previous stop. Twenty stops, a few hundred checks." |

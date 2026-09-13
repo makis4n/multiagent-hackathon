@@ -1,48 +1,57 @@
-"""The one place that talks to Gemini. Typed in, typed out.
+"""The one place that talks to a model. Typed in, typed out.
 
-Both defaults are Flash Lite: on the free tier it answered a full draft in 4s, while gemini-flash-latest returned
-503 "high demand" on every long request and the newer Flash models ran out of quota. The dated 2.5 names are
-refused for new keys and Pro needs paid quota. Override with GEMINI_MODEL_MAIN and GEMINI_MODEL_FAST in .env.
+Claude is the default (LLM_PROVIDER=anthropic): the response schema goes in as a structured output format, so
+the answer is JSON in the shape asked for. ANTHROPIC_EFFORT (default low) trades depth for latency. Gemini stays
+behind LLM_PROVIDER=gemini as the fallback it was before, with the same wrapper contract. Override models with
+ANTHROPIC_MODEL_MAIN / ANTHROPIC_MODEL_FAST (or GEMINI_MODEL_*).
 
 Keep response schemas flat: pydantic models built from str, int, float, bool, lists and nested models, with
-`X | None` as the only union. No dicts. Gemini's JSON schema support rejects the rest.
+`X | None` as the only union. No dicts. Both providers accept that subset; Gemini rejects the rest.
 """
 
 from __future__ import annotations
 
 import os
+import re
 import time
+from typing import Any
 
-from google import genai
-from google.genai import errors, types
+import anthropic
+from anthropic.types import MessageParam, OutputConfigParam
 from pydantic import BaseModel, ValidationError
 
 from trip_core.models import RetryableError, ToolError
 
-DEFAULT_MAIN = "gemini-flash-lite-latest"
-DEFAULT_FAST = "gemini-flash-lite-latest"
-RETRYABLE_CODES = {408, 429, 500, 502, 503, 504}
+DEFAULT_PROVIDER = "anthropic"
+DEFAULTS = {
+    "anthropic": ("claude-sonnet-5", "claude-haiku-4-5-20251001"),
+    "gemini": ("gemini-flash-lite-latest", "gemini-flash-lite-latest"),
+}
+RETRYABLE_CODES = {408, 409, 429, 500, 502, 503, 504, 529}
 BACKOFF_SECONDS = 3.0
+MAX_TOKENS = 8192
+DEFAULT_EFFORT = "low"
+CLAUDE_5 = re.compile(r"claude-[a-z]+-5(?:-|$)")
 
-_client: genai.Client | None = None
+_anthropic: anthropic.Anthropic | None = None
+_gemini: Any = None
+
+
+def provider() -> str:
+    name = os.environ.get("LLM_PROVIDER", DEFAULT_PROVIDER).strip().lower()
+    if name not in DEFAULTS:
+        raise ToolError(f"LLM_PROVIDER must be one of {sorted(DEFAULTS)}, not {name!r}")
+    return name
 
 
 def model_main() -> str:
-    return os.environ.get("GEMINI_MODEL_MAIN", DEFAULT_MAIN)
+    name = provider()
+    return os.environ.get(f"{name.upper()}_MODEL_MAIN", DEFAULTS[name][0])
 
 
 def model_fast() -> str:
-    return os.environ.get("GEMINI_MODEL_FAST", DEFAULT_FAST)
-
-
-def client() -> genai.Client:
-    global _client
-    if _client is None:
-        key = os.environ.get("GEMINI_API_KEY")
-        if not key:
-            raise ToolError("GEMINI_API_KEY is not set; copy .env.example to .env and fill it in")
-        _client = genai.Client(api_key=key)
-    return _client
+    name = provider()
+    return os.environ.get(f"{name.upper()}_MODEL_FAST", DEFAULTS[name][1])
 
 
 def complete_json[T: BaseModel](
@@ -82,9 +91,88 @@ class SchemaError(ToolError):
 def _complete_once[T: BaseModel](
     prompt: str, schema: type[T], *, model: str | None, system: str | None, temperature: float
 ) -> T:
+    if provider() == "gemini":
+        return _gemini_once(prompt, schema, model=model or model_main(), system=system, temperature=temperature)
+    return _anthropic_once(prompt, schema, model=model or model_main(), system=system)
+
+
+def anthropic_client() -> anthropic.Anthropic:
+    global _anthropic
+    if _anthropic is None:
+        key = os.environ.get("ANTHROPIC_API_KEY")
+        if not key:
+            raise ToolError("ANTHROPIC_API_KEY is not set; copy .env.example to .env and fill it in")
+        _anthropic = anthropic.Anthropic(api_key=key, max_retries=0, timeout=120.0)
+    return _anthropic
+
+
+def _anthropic_once[T: BaseModel](prompt: str, schema: type[T], *, model: str, system: str | None) -> T:
+    """Structured output: the schema constrains decoding, so the text is JSON in that shape. Claude 5 takes no
+    temperature; the wrapper keeps the parameter for Gemini."""
+    messages: list[MessageParam] = [{"role": "user", "content": prompt}]
+    output: OutputConfigParam = {"format": {"type": "json_schema", "schema": strict(schema.model_json_schema())}}
+    if CLAUDE_5.search(model):
+        output["effort"] = effort()
     try:
-        response = client().models.generate_content(
-            model=model or model_main(),
+        response = anthropic_client().messages.create(
+            model=model,
+            max_tokens=MAX_TOKENS,
+            system=system if system else anthropic.omit,
+            messages=messages,
+            output_config=output,
+        )
+    except anthropic.APIStatusError as error:
+        if error.status_code in RETRYABLE_CODES:
+            raise RetryableError(f"anthropic {error.status_code}: {error.message}") from error
+        raise ToolError(f"anthropic {error.status_code}: {error.message}") from error
+    except anthropic.APIConnectionError as error:
+        raise RetryableError(f"anthropic: {type(error).__name__}") from error
+    text = "".join(block.text for block in response.content if block.type == "text")
+    if not text:
+        raise SchemaError(f"empty response (stop_reason={response.stop_reason})")
+    try:
+        return schema.model_validate_json(text)
+    except ValidationError as error:
+        raise SchemaError(str(error)[:800]) from error
+
+
+def effort() -> Any:
+    """Only the Claude 5 family takes an effort level; Haiku 4.5 rejects the parameter."""
+    return os.environ.get("ANTHROPIC_EFFORT", DEFAULT_EFFORT)
+
+
+def strict(node: Any) -> Any:
+    """Structured outputs demand additionalProperties: false on every object, $defs included. Pure."""
+    if isinstance(node, dict):
+        out = {key: strict(value) for key, value in node.items()}
+        if out.get("type") == "object" and "additionalProperties" not in out:
+            out["additionalProperties"] = False
+        return out
+    if isinstance(node, list):
+        return [strict(item) for item in node]
+    return node
+
+
+def gemini_client() -> Any:
+    global _gemini
+    if _gemini is None:
+        from google import genai
+
+        key = os.environ.get("GEMINI_API_KEY")
+        if not key:
+            raise ToolError("GEMINI_API_KEY is not set; copy .env.example to .env and fill it in")
+        _gemini = genai.Client(api_key=key)
+    return _gemini
+
+
+def _gemini_once[T: BaseModel](
+    prompt: str, schema: type[T], *, model: str, system: str | None, temperature: float
+) -> T:
+    from google.genai import errors, types
+
+    try:
+        response = gemini_client().models.generate_content(
+            model=model,
             contents=prompt,
             config=types.GenerateContentConfig(
                 system_instruction=system,
