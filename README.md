@@ -10,7 +10,7 @@ Read `CLAUDE.md` (binds everyone working here), `ARCHITECTURE.md` (the loop) and
 ## Layout
 
 ```
-packages/core/        trip_core       the contract: models, Protocols, fakes, the Gemini wrapper, the tokyo fixture
+packages/core/        trip_core       the contract: models, Protocols, fakes, the model wrapper (Claude, Gemini fallback), the tokyo fixture
 packages/research/    trip_research   Lane B: Reddit, YouTube, web search -> Signal[]
 packages/itinerary/   trip_itinerary  Lane C: draft, refine, resolve, verify, calendar
 packages/booking/     trip_booking    Lane D: Duffel flights and stays, activities, the confirmation gate
