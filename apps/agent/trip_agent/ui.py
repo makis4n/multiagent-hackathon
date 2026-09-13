@@ -28,6 +28,9 @@ from trip_agent.registry import active_flags, build_tools, inject_booking_failur
 from trip_core.models import BudgetBand, TripBrief, TripState
 
 STYLES = ["food", "art", "museums", "nightlife", "nature", "family", "shopping", "neighbourhood walks"]
+BUDGET_MIN, BUDGET_MAX = 30, 600
+BUDGET_LOW_BELOW, BUDGET_HIGH_FROM = 100, 250
+BUDGET_QUESTION = "Budget per person per day"
 DESTINATIONS = [
     "Amsterdam (AMS)",
     "Bali (DPS)",
@@ -325,7 +328,7 @@ def trip_strip(state: TripState) -> None:
     cells = [
         ("Dates", f"{brief.start_date:%d %b}–{brief.end_date:%d %b}"),
         ("Travellers", str(brief.travellers)),
-        ("Budget", brief.budget_band.value),
+        ("Budget", budget_label(brief)),
         ("Departs in", departure_countdown(brief.start_date)),
     ]
     body = "".join(
@@ -334,6 +337,20 @@ def trip_strip(state: TripState) -> None:
         for label, value in cells
     )
     st.markdown(f'<div class="trip-strip">{body}</div>', unsafe_allow_html=True)
+
+
+def budget_band(per_day: int) -> BudgetBand:
+    if per_day < BUDGET_LOW_BELOW:
+        return BudgetBand.low
+    if per_day < BUDGET_HIGH_FROM:
+        return BudgetBand.mid
+    return BudgetBand.high
+
+
+def budget_label(brief: TripBrief) -> str:
+    answer = brief.answers.get(BUDGET_QUESTION, "")
+    match = re.search(r"(\d+) EUR", answer)
+    return f"{match.group(1)} EUR/day, {brief.budget_band.value}" if match else brief.budget_band.value
 
 
 def split_code(pick: str) -> tuple[str, str]:
@@ -379,7 +396,14 @@ def brief_form(tools: Tools) -> None:
         start = st.date_input("Start", dt.date(2026, 11, 12))
         end = st.date_input("End", dt.date(2026, 11, 16))
         travellers = st.number_input("Travellers", min_value=1, max_value=8, value=2)
-        budget = st.select_slider("Budget", [band.value for band in BudgetBand], value=BudgetBand.mid.value)
+        budget = st.slider(
+            "Budget per person per day (EUR)",
+            min_value=BUDGET_MIN,
+            max_value=BUDGET_MAX,
+            value=150,
+            step=10,
+            help="Food, tickets and getting around, flights aside. Under 100 reads as low, over 250 as high.",
+        )
         styles = st.multiselect("Styles", STYLES, ["food", "art"])
         submitted = st.form_submit_button("Plan trip")
     destination, destination_code = split_code(destination_pick or "")
@@ -396,8 +420,9 @@ def brief_form(tools: Tools) -> None:
             start_date=start,
             end_date=end,
             travellers=int(travellers),
-            budget_band=BudgetBand(budget),
+            budget_band=budget_band(int(budget)),
             styles=styles,
+            answers={BUDGET_QUESTION: f"about {int(budget)} EUR per person per day, flights aside"},
         )
         state = TripState(brief=brief)
         with st.status("Researching and drafting", expanded=False) as status:
