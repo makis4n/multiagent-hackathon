@@ -1,0 +1,26 @@
+{
+  "unavailable": {
+    "error": {
+      "code": 503,
+      "message": "leaked-body-marker in the message",
+      "status": "UNAVAILABLE",
+      "errors": [{"domain": "calendar", "reason": "backendError", "message": "leaked-body-marker again"}]
+    }
+  },
+  "forbidden": {
+    "error": {
+      "code": 403,
+      "message": "leaked-body-marker in the message",
+      "status": "PERMISSION_DENIED",
+      "errors": [{"domain": "calendar", "reason": "forbidden", "message": "leaked-body-marker again"}]
+    }
+  },
+  "invalid": {
+    "error": {
+      "code": 400,
+      "message": "leaked-body-marker in the message",
+      "status": "INVALID_ARGUMENT",
+      "errors": [{"domain": "calendar", "reason": "invalid", "message": "leaked-body-marker again"}]
+    }
+  }
+}
