@@ -183,3 +183,26 @@ def test_stops_that_keep_failing_are_pruned_and_recorded(tmp_path: Path) -> None
     assert state.itinerary is not None
     assert not any("Koenji" in stop.place_name for stop in state.itinerary.stops())
     assert any(swap.old.place_name == "Koenji" for swap in state.replacements)
+
+
+def test_prune_repeats_when_a_removal_creates_a_new_failing_leg(tmp_path: Path) -> None:
+    """A verifier that rejects whichever stop follows Tsukiji: removing it makes the next one follow Tsukiji."""
+    from trip_core.models import Check, CheckKind, Itinerary, VerificationReport
+
+    class RejectsWhateverFollowsTsukiji:
+        def verify(self, itinerary: Itinerary) -> VerificationReport:
+            checks = []
+            for day in itinerary.days:
+                for index, stop in enumerate(day.stops):
+                    after_tsukiji = index > 0 and "Tsukiji" in day.stops[index - 1].place_name
+                    checks.append(Check(stop_id=stop.id, check=CheckKind.reachable, ok=not after_tsukiji))
+            return VerificationReport(itinerary_id=itinerary.id, checks=checks)
+
+    fakes = default_fakes()
+    tools = tools_from(fakes)
+    tools.verifier = RejectsWhateverFollowsTsukiji()
+    brief = load_fixture("tokyo").brief
+    state = run(brief, tools, CallLog(tmp_path / "calls.jsonl", brief.id), confirm=lambda option: None)
+    assert state.report is not None and state.report.passed
+    assert state.itinerary is not None and len(state.itinerary.days[0].stops) == 1
+    assert len(state.replacements) >= 3

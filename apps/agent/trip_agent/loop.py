@@ -41,6 +41,7 @@ Confirm = Callable[[BookingOption], dt.datetime | None]
 Ask = Callable[[str], str | None]
 DEFAULT_BOOKINGS: tuple[BookingKind, ...] = (BookingKind.flight, BookingKind.stay)
 REPLACEMENT_PASSES = 2
+PRUNE_PASSES = 3
 
 
 @dataclass
@@ -110,7 +111,8 @@ def stage_refine(state: TripState, tools: Tools, log: CallLog, answers: dict[str
 
 def stage_verify(state: TripState, tools: Tools, log: CallLog) -> TripState:
     """Resolve and verify; up to REPLACEMENT_PASSES rounds of replacements for what failed; then prune whatever
-    still fails so the finished plan is fully verified. Every swap and removal lands in state.replacements."""
+    still fails, repeating while a removal creates a new failing leg, so the finished plan is fully verified.
+    Every swap and removal lands in state.replacements."""
     if state.itinerary is None:
         raise ValueError("verify before draft")
     near = state.brief.destination
@@ -128,7 +130,9 @@ def stage_verify(state: TripState, tools: Tools, log: CallLog) -> TripState:
         itinerary = apply_patches(state, marked, itinerary, patches)
         itinerary, places = log.call("places.resolve", resolve_places, itinerary, tools.resolver, near)
         report = log.call("verifier.verify", tools.verifier.verify, itinerary)
-    if not report.passed:
+    for _ in range(PRUNE_PASSES):
+        if report.passed:
+            break
         marked = mark(itinerary, report)
         prune = [ItineraryPatch(op="remove", stop_id=stop_id) for stop_id in report.failed_stop_ids()]
         itinerary = apply_patches(state, marked, itinerary, prune)
