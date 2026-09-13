@@ -16,11 +16,12 @@ from typing import Any
 import httpx
 
 from trip_core.models import Signal, SignalSource, ToolError, TripBrief
+from trip_research.http import check_status
+from trip_research.places import extract_places
 from trip_research.rank import best_per_url, excerpt, from_epoch, score, utc_now
 
 TOKEN_URL = "https://www.reddit.com/api/v1/access_token"
 SEARCH_URL = "https://oauth.reddit.com/search"
-RETRYABLE_STATUS = {408, 429, 500, 502, 503, 504}
 EXCERPT_CHARS = 400
 PER_QUERY = 25
 MAX_QUERIES = 5
@@ -32,8 +33,8 @@ def queries(brief: TripBrief) -> list[str]:
     return terms[:MAX_QUERIES]
 
 
-def to_signals(payload: dict[str, Any], now: dt.datetime) -> list[Signal]:
-    """Pure. A Reddit listing to Signals; places_mentioned stays empty until the extraction pass fills it."""
+def to_signals(payload: dict[str, Any], destination: str, now: dt.datetime) -> list[Signal]:
+    """Pure. A Reddit listing to Signals."""
     signals: list[Signal] = []
     for child in payload.get("data", {}).get("children", []):
         post = child.get("data", {})
@@ -51,6 +52,7 @@ def to_signals(payload: dict[str, Any], now: dt.datetime) -> list[Signal]:
                 url=f"https://www.reddit.com{permalink}",
                 title=title,
                 excerpt=excerpt(body or title, EXCERPT_CHARS),
+                places_mentioned=extract_places(title, body, destination),
                 posted_at=posted_at,
                 score=score(posted_at, now, int(post.get("ups", 0)), int(post.get("num_comments", 0))),
             )
@@ -78,7 +80,7 @@ class RedditSource:
         signals: list[Signal] = []
         for query in queries(brief):
             try:
-                signals.extend(to_signals(self._search_once(token, query), now))
+                signals.extend(to_signals(self._search_once(token, query), brief.destination, now))
             except (ToolError, httpx.HTTPError) as error:
                 self.errors.append(f"search: {type(error).__name__}")
         return best_per_url(signals)
@@ -99,7 +101,7 @@ class RedditSource:
             data={"grant_type": "client_credentials"},
             headers={"User-Agent": self._user_agent()},
         )
-        self._check(response)
+        check_status(response, "reddit")
         token = response.json().get("access_token")
         if not isinstance(token, str) or not token:
             raise ToolError("reddit returned no access_token")
@@ -112,16 +114,8 @@ class RedditSource:
             params={"q": query, "sort": "top", "t": "year", "limit": PER_QUERY, "type": "link", "raw_json": 1},
             headers={"Authorization": f"Bearer {token}", "User-Agent": self._user_agent()},
         )
-        self._check(response)
+        check_status(response, "reddit")
         payload = response.json()
         if not isinstance(payload, dict):
             raise ToolError("reddit returned a non-object body")
         return payload
-
-    @staticmethod
-    def _check(response: httpx.Response) -> None:
-        """Rule 12: every third-party response checks its status. The body never reaches a log line."""
-        if response.status_code in RETRYABLE_STATUS:
-            raise httpx.HTTPError(f"reddit {response.status_code}")
-        if response.status_code >= 400:
-            raise ToolError(f"reddit {response.status_code}")

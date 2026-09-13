@@ -28,6 +28,15 @@ def from_epoch(seconds: float) -> dt.datetime:
     return dt.datetime.fromtimestamp(seconds, dt.UTC).replace(tzinfo=None)
 
 
+def to_naive_utc(stamp: str) -> dt.datetime | None:
+    """RFC 3339 with a Z suffix to naive UTC. Aware datetimes raise when subtracted from the fixture's naive ones."""
+    try:
+        parsed = dt.datetime.fromisoformat(stamp)
+    except ValueError:
+        return None
+    return parsed.astimezone(dt.UTC).replace(tzinfo=None) if parsed.tzinfo else parsed
+
+
 def recency_weight(posted_at: dt.datetime | None, now: dt.datetime) -> float:
     """1.0 today, 0.5 at the half life, 0.59 at the 90 day mark the plan calls trendy."""
     if posted_at is None:
