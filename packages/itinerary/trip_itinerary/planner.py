@@ -49,6 +49,22 @@ class Questions(BaseModel):
     questions: list[str]
 
 
+class ReplacementStop(BaseModel):
+    place_name: str = Field(description="a real place inside the destination, named in a signal")
+    category: str
+    why: str
+    signal_ids: list[str]
+
+
+class ReplacementChoice(BaseModel):
+    stop_id: str
+    replacement: ReplacementStop | None = Field(default=None, description="None means remove the stop")
+
+
+class Replacements(BaseModel):
+    replacements: list[ReplacementChoice]
+
+
 Complete = Callable[..., Any]
 
 
@@ -82,7 +98,43 @@ class GeminiPlanner:
     def replace_failed(
         self, brief: TripBrief, itinerary: Itinerary, report: VerificationReport, signals: list[Signal]
     ) -> list[ItineraryPatch]:
-        return self.rules.replace_failed(brief, itinerary, report, signals)
+        """One model call: for each failed stop, a replacement from the unused signal places near its neighbours,
+        or a removal. Anything the model returns for a stop that did not fail is ignored."""
+        failed = [stop for stop in itinerary.stops() if stop.id in report.failed_stop_ids()]
+        if not failed:
+            return []
+        result: Replacements = self.complete(
+            replace_prompt(brief, itinerary, failed, signals), Replacements, model=model_main(), system=SYSTEM
+        )
+        known = {signal.id for signal in signals}
+        by_id = {stop.id: stop for stop in failed}
+        patches: list[ItineraryPatch] = []
+        seen: set[str] = set()
+        for choice in result.replacements:
+            old_stop = by_id.get(choice.stop_id)
+            if old_stop is None or choice.stop_id in seen:
+                continue
+            seen.add(choice.stop_id)
+            if choice.replacement is None or not choice.replacement.place_name.strip():
+                patches.append(ItineraryPatch(op="remove", stop_id=old_stop.id))
+                continue
+            new_stop = Stop(
+                id=f"{old_stop.id}-r",
+                day=old_stop.day,
+                start=old_stop.start,
+                end=old_stop.end,
+                place_name=choice.replacement.place_name.strip(),
+                category=choice.replacement.category
+                if choice.replacement.category in CATEGORIES
+                else old_stop.category,
+                why=choice.replacement.why.strip() or "Replacement suggested by the planner.",
+                signal_ids=[signal_id for signal_id in choice.replacement.signal_ids if signal_id in known],
+            )
+            patches.append(ItineraryPatch(op="replace", stop_id=old_stop.id, stop=new_stop))
+        for stop in failed:
+            if stop.id not in seen:
+                patches.append(ItineraryPatch(op="remove", stop_id=stop.id))
+        return patches
 
 
 def draft_prompt(brief: TripBrief, signals: list[Signal]) -> str:
@@ -102,10 +154,12 @@ def draft_prompt(brief: TripBrief, signals: list[Signal]) -> str:
         f"Day indexes:\n{days}\n"
         f"Answers so far:\n{answers}\n"
         f"Signals (id | source | posted | title | places):\n{lines}\n\n"
-        "Plan three or four stops per day between 10:00 and 21:00 with no overlaps and time to move between them. "
-        "Every stop is at a place named in a signal and lists that signal's id; never use a place twice; write "
-        "place_name so Google Maps finds it. Spread the styles across the days, put food stops at meal times, "
-        "and respect every answer above. category is one of: " + ", ".join(CATEGORIES) + "."
+        f"Plan three or four stops per day between 10:00 and 21:00 with no overlaps and time to move between them. "
+        f"Every stop is a real, specific place inside {brief.destination} (a venue, market, museum, park, street "
+        f"or neighbourhood), named in a signal, listing that signal's id. Never another city or region, never a "
+        f"fragment that is not a place name (ignore names like 'TOKYO MAP', 'Source' or a possessive). Never use "
+        f"a place twice; write place_name so Google Maps finds it. Spread the styles across the days, put food "
+        f"stops at meal times, and respect every answer above. category is one of: " + ", ".join(CATEGORIES) + "."
     )
 
 
@@ -120,6 +174,32 @@ def questions_prompt(brief: TripBrief, itinerary: Itinerary) -> str:
         f"styles: {', '.join(brief.styles) or 'any'}.\nDraft:\n{plan}\nAlready answered:\n{answered}\n\n"
         f"Ask at most {MAX_QUESTIONS} short questions whose answers would change this draft: pace, food to avoid, "
         "must-sees, places to skip, budget for meals. One line each, no preamble, nothing already answered."
+    )
+
+
+def replace_prompt(brief: TripBrief, itinerary: Itinerary, failed: list[Stop], signals: list[Signal]) -> str:
+    used = {stop.place_name.lower() for stop in itinerary.stops()}
+    candidates = [
+        f"  {signal.id} | {signal.title} | {', '.join(signal.places_mentioned)}"
+        for signal in sorted(signals, key=lambda signal: signal.score, reverse=True)
+        if any(place.lower() not in used for place in signal.places_mentioned)
+    ][:MAX_SIGNALS]
+    days = "\n".join(
+        f"  day {index} {day.date:%a %d %b}: "
+        + "; ".join(f"[{stop.id}] {stop.start:%H:%M} {stop.place_name}" for stop in day.stops)
+        for index, day in enumerate(itinerary.days)
+    )
+    problems = "\n".join(
+        f"  {stop.id}: {stop.place_name} at {stop.start:%H:%M} day {stop.day}: {stop.failure_reason}" for stop in failed
+    )
+    return (
+        f"Trip: {brief.destination}, styles: {', '.join(brief.styles) or 'any'}.\nCurrent plan:\n{days}\n"
+        f"These stops failed verification:\n{problems}\n"
+        f"Unused signals (id | title | places):\n{chr(10).join(candidates)}\n\n"
+        f"For each failed stop choose one replacement: a real, specific place inside {brief.destination} named in "
+        "an unused signal, close to the stops before and after it, open at that hour, fitting the trip's styles, "
+        "with the signal id. Return replacement = null when nothing fits. Never a place already in the plan, never "
+        "another city, never a fragment that is not a place name."
     )
 
 

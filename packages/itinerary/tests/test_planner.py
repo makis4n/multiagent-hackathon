@@ -61,3 +61,26 @@ def test_to_itinerary_repairs_what_the_model_got_wrong() -> None:
     assert stops[0].end > stops[0].start
     assert stops[1].start == parse_time("10:00") and stops[1].signal_ids == []
     assert stops[0].category == "sight" and stops[1].category == "food"
+
+
+def test_replace_failed_swaps_or_removes_only_the_failed_stops() -> None:
+    from trip_core.models import Check, CheckKind, VerificationReport, apply_patch
+
+    fixture = load_fixture("tokyo")
+    planner = GeminiPlanner(complete=recorded("tokyo"))
+    itinerary = planner.draft(fixture.brief, fixture.signals)
+    victim = itinerary.days[0].stops[0]
+    victim.failure_reason = "reachable: 410 min from the previous stop (drive-based estimate)"
+    report = VerificationReport(
+        itinerary_id=itinerary.id,
+        checks=[Check(stop_id=victim.id, check=CheckKind.reachable, ok=False, detail="410 min")],
+    )
+    patches = planner.replace_failed(fixture.brief, itinerary, report, fixture.signals)
+    assert [patch.stop_id for patch in patches] == [victim.id]
+    assert patches[0].op in ("replace", "remove")
+    patched = apply_patch(itinerary, patches[0])
+    names = [stop.place_name for stop in patched.stops()]
+    assert victim.place_name not in names or patches[0].op == "remove"
+    assert len(names) == len(set(names))
+    if patches[0].op == "replace":
+        assert patches[0].stop is not None and patches[0].stop.signal_ids

@@ -1,5 +1,5 @@
 {
-  "notes": "A well-paced 5-day itinerary balancing food, art, and neighborhood walks while avoiding Shibuya Sky as requested.",
+  "notes": "A well-rounded 5-day Tokyo itinerary balancing food, art, and neighbourhood walks while skipping Shibuya Sky as requested.",
   "stops": [
     {
       "category": "food",
@@ -10,29 +10,40 @@
         "tk-01"
       ],
       "start": "10:00",
-      "why": "Tsukiji Outer Market at 7am is still the move"
+      "why": "Tsukiji Outer Market at 7am is still the move."
     },
     {
-      "category": "museum",
+      "category": "shopping",
       "day": 0,
       "end": "15:00",
-      "place_name": "Mori Art Museum",
+      "place_name": "Kappabashi Kitchen Town",
       "signal_ids": [
-        "tk-07"
+        "tk-06"
       ],
       "start": "13:00",
-      "why": "Mori Art Museum current show is worth the ticket"
+      "why": "Kappabashi for knives: which shops actually let you handle them."
     },
     {
       "category": "walk",
       "day": 0,
       "end": "18:00",
-      "place_name": "Nakameguro",
+      "place_name": "Yanaka Ginza",
       "signal_ids": [
-        "tk-05"
+        "tk-04"
       ],
       "start": "16:00",
-      "why": "Nakameguro canal walk and coffee crawl"
+      "why": "Yanaka Ginza is the old Tokyo people keep asking for."
+    },
+    {
+      "category": "nightlife",
+      "day": 0,
+      "end": "21:00",
+      "place_name": "Omoide Yokocho",
+      "signal_ids": [
+        "tk-13"
+      ],
+      "start": "19:00",
+      "why": "Omoide Yokocho without the tourist markup."
     },
     {
       "category": "museum",
@@ -43,7 +54,7 @@
         "tk-11"
       ],
       "start": "10:00",
-      "why": "Nezu Museum garden is the best 1500 yen in Aoyama"
+      "why": "Nezu Museum garden is the best 1500 yen in Aoyama."
     },
     {
       "category": "shopping",
@@ -54,29 +65,40 @@
         "tk-14"
       ],
       "start": "13:00",
-      "why": "Daikanyama T-Site is still the best bookshop afternoon"
+      "why": "Daikanyama T-Site is still the best bookshop afternoon."
     },
     {
       "category": "walk",
       "day": 1,
       "end": "18:00",
-      "place_name": "Shimokitazawa",
+      "place_name": "Nakameguro",
       "signal_ids": [
-        "tk-03"
+        "tk-05"
       ],
       "start": "16:00",
-      "why": "Shimokitazawa on a weekday afternoon"
+      "why": "Nakameguro canal walk and coffee crawl."
     },
     {
-      "category": "walk",
+      "category": "sight",
+      "day": 1,
+      "end": "21:00",
+      "place_name": "teamLab Planets",
+      "signal_ids": [
+        "tk-02"
+      ],
+      "start": "19:00",
+      "why": "teamLab Planets vs Borderless: which one in 2026."
+    },
+    {
+      "category": "museum",
       "day": 2,
       "end": "12:00",
-      "place_name": "Yanaka Ginza",
+      "place_name": "Tokyo National Museum",
       "signal_ids": [
-        "tk-04"
+        "tk-17"
       ],
       "start": "10:00",
-      "why": "Yanaka Ginza is the old Tokyo people keep asking for"
+      "why": "Tokyo National Museum: skip the main building, do the Horyuji gallery."
     },
     {
       "category": "museum",
@@ -87,7 +109,7 @@
         "tk-16"
       ],
       "start": "13:00",
-      "why": "Sumida Hokusai Museum plus a river walk"
+      "why": "Sumida Hokusai Museum plus a river walk."
     },
     {
       "category": "nature",
@@ -98,7 +120,18 @@
         "tk-10"
       ],
       "start": "16:00",
-      "why": "Kiyosumi Gardens in autumn light"
+      "why": "Kiyosumi Gardens in autumn light."
+    },
+    {
+      "category": "nightlife",
+      "day": 2,
+      "end": "21:00",
+      "place_name": "Koenji",
+      "signal_ids": [
+        "tk-08"
+      ],
+      "start": "19:00",
+      "why": "Koenji: the anti-Shibuya."
     },
     {
       "category": "nature",
@@ -109,10 +142,10 @@
         "tk-15"
       ],
       "start": "10:00",
-      "why": "Kichijoji and Inokashira Park for a slow Sunday"
+      "why": "Kichijoji and Inokashira Park for a slow Sunday."
     },
     {
-      "category": "walk",
+      "category": "nature",
       "day": 3,
       "end": "15:00",
       "place_name": "Yoyogi Park",
@@ -120,51 +153,40 @@
         "tk-18"
       ],
       "start": "13:00",
-      "why": "Yoyogi Park on a Sunday: rockabilly dancers still there"
+      "why": "Yoyogi Park on a Sunday: rockabilly dancers still there."
     },
     {
       "category": "walk",
       "day": 3,
       "end": "18:00",
-      "place_name": "Koenji",
+      "place_name": "Shimokitazawa",
       "signal_ids": [
-        "tk-08"
+        "tk-03"
       ],
       "start": "16:00",
-      "why": "Koenji: the anti-Shibuya"
-    },
-    {
-      "category": "shopping",
-      "day": 4,
-      "end": "12:00",
-      "place_name": "Kappabashi Kitchen Town",
-      "signal_ids": [
-        "tk-06"
-      ],
-      "start": "10:00",
-      "why": "Kappabashi for knives: which shops actually let you handle them"
-    },
-    {
-      "category": "museum",
-      "day": 4,
-      "end": "15:00",
-      "place_name": "Tokyo National Museum",
-      "signal_ids": [
-        "tk-17"
-      ],
-      "start": "13:00",
-      "why": "Tokyo National Museum: skip the main building, do the Horyuji gallery"
+      "why": "Shimokitazawa on a weekday afternoon."
     },
     {
       "category": "nature",
       "day": 4,
-      "end": "18:00",
+      "end": "12:00",
       "place_name": "Todoroki Valley",
       "signal_ids": [
         "tk-09"
       ],
-      "start": "16:00",
-      "why": "Todoroki Valley: a forest walk inside the city"
+      "start": "10:00",
+      "why": "Todoroki Valley: a forest walk inside the city."
+    },
+    {
+      "category": "museum",
+      "day": 4,
+      "end": "17:00",
+      "place_name": "Mori Art Museum",
+      "signal_ids": [
+        "tk-07"
+      ],
+      "start": "14:00",
+      "why": "Mori Art Museum current show is worth the ticket."
     }
   ]
 }
