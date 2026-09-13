@@ -1,0 +1,10 @@
+{
+  "id": "bangkok",
+  "destination": "Bangkok",
+  "origin": "SIN",
+  "start_date": "2026-12-11",
+  "end_date": "2026-12-14",
+  "travellers": 2,
+  "budget_band": "low",
+  "styles": ["street food", "markets", "temples"]
+}

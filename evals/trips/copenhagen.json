@@ -1,0 +1,10 @@
+{
+  "id": "copenhagen",
+  "destination": "Copenhagen",
+  "origin": "ARN",
+  "start_date": "2026-10-30",
+  "end_date": "2026-11-01",
+  "travellers": 2,
+  "budget_band": "high",
+  "styles": ["design", "food", "cycling"]
+}

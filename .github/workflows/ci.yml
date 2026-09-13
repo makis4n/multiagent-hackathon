@@ -1,0 +1,24 @@
+name: ci
+
+# The push trigger gives every head SHA a run even when the PR has conflicts (a PR with conflicts gets no
+# pull_request run at all). Merge only on a green run for your head SHA.
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+      - run: uv python install
+      - run: uv sync --all-packages --locked
+      - run: make check

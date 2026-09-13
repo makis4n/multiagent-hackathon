@@ -1,0 +1,10 @@
+{
+  "id": "tokyo",
+  "destination": "Tokyo",
+  "origin": "ARN",
+  "start_date": "2026-11-12",
+  "end_date": "2026-11-16",
+  "travellers": 2,
+  "budget_band": "mid",
+  "styles": ["food", "art", "neighbourhood walks"]
+}

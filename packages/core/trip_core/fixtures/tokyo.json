@@ -1,0 +1,33 @@
+{
+  "brief": {
+    "id": "tokyo-2026-11",
+    "destination": "Tokyo",
+    "origin": "ARN",
+    "start_date": "2026-11-12",
+    "end_date": "2026-11-16",
+    "travellers": 2,
+    "budget_band": "mid",
+    "styles": ["food", "art", "neighbourhood walks"],
+    "answers": {"Anything to skip?": "skip: Shibuya Sky"}
+  },
+  "signals": [
+    {"id": "tk-01", "source": "reddit", "url": "https://reddit.com/r/JapanTravel/fixture/01", "title": "Tsukiji Outer Market at 7am is still the move", "excerpt": "Tamagoyaki stand had no queue before 8. Skip the tuna auction hype.", "places_mentioned": ["Tsukiji Outer Market"], "posted_at": "2026-08-30T09:12:00", "score": 0.96},
+    {"id": "tk-02", "source": "youtube", "url": "https://youtube.com/watch?v=fixture02", "title": "teamLab Planets vs Borderless: which one in 2026", "excerpt": "Planets is the wet one, book the 10am slot, an hour is enough.", "places_mentioned": ["teamLab Planets"], "posted_at": "2026-08-22T18:00:00", "score": 0.94},
+    {"id": "tk-03", "source": "reddit", "url": "https://reddit.com/r/JapanTravel/fixture/03", "title": "Shimokitazawa on a weekday afternoon", "excerpt": "Vintage shops open around noon, curry places fill up at 1.", "places_mentioned": ["Shimokitazawa"], "posted_at": "2026-08-18T14:30:00", "score": 0.92},
+    {"id": "tk-04", "source": "reddit", "url": "https://reddit.com/r/Tokyo/fixture/04", "title": "Yanaka Ginza is the old Tokyo people keep asking for", "excerpt": "Cat street, croquette stands, temple walk to Nippori. Two hours.", "places_mentioned": ["Yanaka Ginza"], "posted_at": "2026-08-15T10:05:00", "score": 0.9},
+    {"id": "tk-05", "source": "youtube", "url": "https://youtube.com/watch?v=fixture05", "title": "Nakameguro canal walk and coffee crawl", "excerpt": "Onibus, then the canal north. Not cherry season, still lovely.", "places_mentioned": ["Nakameguro"], "posted_at": "2026-08-10T12:00:00", "score": 0.88},
+    {"id": "tk-06", "source": "reddit", "url": "https://reddit.com/r/JapanTravel/fixture/06", "title": "Kappabashi for knives: which shops actually let you handle them", "excerpt": "Kama-Asa and Tsubaya. Go before 3, they close early.", "places_mentioned": ["Kappabashi Kitchen Town"], "posted_at": "2026-08-05T08:45:00", "score": 0.86},
+    {"id": "tk-07", "source": "youtube", "url": "https://youtube.com/watch?v=fixture07", "title": "Mori Art Museum current show is worth the ticket", "excerpt": "Combined with the observation deck. Late opening on Fridays.", "places_mentioned": ["Mori Art Museum"], "posted_at": "2026-08-01T20:15:00", "score": 0.84},
+    {"id": "tk-08", "source": "reddit", "url": "https://reddit.com/r/Tokyo/fixture/08", "title": "Koenji: the anti-Shibuya", "excerpt": "Second-hand everything, live houses, a cheap izakaya on every corner.", "places_mentioned": ["Koenji"], "posted_at": "2026-07-28T22:10:00", "score": 0.82},
+    {"id": "tk-09", "source": "reddit", "url": "https://reddit.com/r/JapanTravel/fixture/09", "title": "Todoroki Valley: a forest walk inside the city", "excerpt": "Twenty minutes from Shibuya, quiet, a tea house at the end.", "places_mentioned": ["Todoroki Valley"], "posted_at": "2026-07-25T07:40:00", "score": 0.8},
+    {"id": "tk-10", "source": "youtube", "url": "https://youtube.com/watch?v=fixture10", "title": "Kiyosumi Gardens in autumn light", "excerpt": "Stepping stones over the pond, the contemporary art museum next door.", "places_mentioned": ["Kiyosumi Gardens"], "posted_at": "2026-07-20T11:00:00", "score": 0.78},
+    {"id": "tk-11", "source": "reddit", "url": "https://reddit.com/r/JapanTravel/fixture/11", "title": "Nezu Museum garden is the best 1500 yen in Aoyama", "excerpt": "Bamboo entrance, the garden alone is worth it. Closed Mondays.", "places_mentioned": ["Nezu Museum"], "posted_at": "2026-07-14T09:30:00", "score": 0.76},
+    {"id": "tk-12", "source": "youtube", "url": "https://youtube.com/watch?v=fixture12", "title": "Shibuya Sky at sunset: book or skip?", "excerpt": "Book two weeks out or forget it. Windy. Great once.", "places_mentioned": ["Shibuya Sky"], "posted_at": "2026-07-10T17:00:00", "score": 0.74},
+    {"id": "tk-13", "source": "reddit", "url": "https://reddit.com/r/Tokyo/fixture/13", "title": "Omoide Yokocho without the tourist markup", "excerpt": "Pick the stalls with hand-written menus. Cash only.", "places_mentioned": ["Omoide Yokocho"], "posted_at": "2026-07-05T21:20:00", "score": 0.72},
+    {"id": "tk-14", "source": "youtube", "url": "https://youtube.com/watch?v=fixture14", "title": "Daikanyama T-Site is still the best bookshop afternoon", "excerpt": "Anjin lounge upstairs, then the log road shops.", "places_mentioned": ["Daikanyama T-Site"], "posted_at": "2026-06-30T13:00:00", "score": 0.7},
+    {"id": "tk-15", "source": "reddit", "url": "https://reddit.com/r/JapanTravel/fixture/15", "title": "Kichijoji and Inokashira Park for a slow Sunday", "excerpt": "Harmonica Yokocho for lunch, swan boats if you must.", "places_mentioned": ["Inokashira Park"], "posted_at": "2026-06-25T10:10:00", "score": 0.68},
+    {"id": "tk-16", "source": "youtube", "url": "https://youtube.com/watch?v=fixture16", "title": "Sumida Hokusai Museum plus a river walk", "excerpt": "Small, sharp, an hour. Then Ryogoku chanko for lunch.", "places_mentioned": ["Sumida Hokusai Museum"], "posted_at": "2026-06-20T15:45:00", "score": 0.66},
+    {"id": "tk-17", "source": "reddit", "url": "https://reddit.com/r/Tokyo/fixture/17", "title": "Tokyo National Museum: skip the main building, do the Horyuji gallery", "excerpt": "Quiet, stunning, and the garden opens in autumn.", "places_mentioned": ["Tokyo National Museum"], "posted_at": "2026-06-15T09:00:00", "score": 0.64},
+    {"id": "tk-18", "source": "youtube", "url": "https://youtube.com/watch?v=fixture18", "title": "Yoyogi Park on a Sunday: rockabilly dancers still there", "excerpt": "Near Harajuku gate around 2pm.", "places_mentioned": ["Yoyogi Park"], "posted_at": "2026-06-10T16:30:00", "score": 0.62}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "barcelona",
+  "destination": "Barcelona",
+  "origin": "ARN",
+  "start_date": "2026-10-16",
+  "end_date": "2026-10-20",
+  "travellers": 4,
+  "budget_band": "mid",
+  "styles": ["family", "beach", "architecture"]
+}

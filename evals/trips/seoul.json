@@ -1,0 +1,10 @@
+{
+  "id": "seoul",
+  "destination": "Seoul",
+  "origin": "SIN",
+  "start_date": "2026-11-05",
+  "end_date": "2026-11-09",
+  "travellers": 3,
+  "budget_band": "mid",
+  "styles": ["k-culture", "food", "shopping"]
+}

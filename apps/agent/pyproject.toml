@@ -1,0 +1,23 @@
+[project]
+name = "trip-agent"
+version = "0.1.0"
+description = "The loop, the registry, the CLI, the Streamlit page, the call log"
+requires-python = ">=3.12"
+dependencies = [
+  "trip-core",
+  "trip-research",
+  "trip-itinerary",
+  "trip-booking",
+  "streamlit>=1.30",
+  "python-dotenv>=1.0",
+]
+
+[project.scripts]
+trip = "trip_agent.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["trip_agent"]

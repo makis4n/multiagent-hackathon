@@ -1,0 +1,43 @@
+[project]
+name = "multiagent-hackathon"
+version = "0.1.0"
+description = "Trip agent: research, plan, verify and book a holiday through one multi-step agent"
+requires-python = ">=3.12"
+dependencies = ["trip-core", "trip-research", "trip-itinerary", "trip-booking", "trip-agent"]
+
+[dependency-groups]
+dev = ["ruff>=0.6", "basedpyright>=1.20", "pytest>=8", "respx>=0.21", "httpx>=0.27"]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/*", "apps/*"]
+
+[tool.uv.sources]
+trip-core = { workspace = true }
+trip-research = { workspace = true }
+trip-itinerary = { workspace = true }
+trip-booking = { workspace = true }
+trip-agent = { workspace = true }
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["trip_core", "trip_research", "trip_itinerary", "trip_booking", "trip_agent"]
+
+[tool.basedpyright]
+typeCheckingMode = "standard"
+pythonVersion = "3.12"
+include = ["packages", "apps", "evals"]
+exclude = ["**/.venv", "**/__pycache__"]
+
+[tool.pytest.ini_options]
+testpaths = ["packages", "apps"]
+addopts = "-q --import-mode=importlib"

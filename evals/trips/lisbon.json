@@ -1,0 +1,10 @@
+{
+  "id": "lisbon",
+  "destination": "Lisbon",
+  "origin": "ARN",
+  "start_date": "2026-10-09",
+  "end_date": "2026-10-12",
+  "travellers": 1,
+  "budget_band": "low",
+  "styles": ["food", "walks", "viewpoints"]
+}

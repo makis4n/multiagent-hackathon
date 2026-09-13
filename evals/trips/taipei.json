@@ -1,0 +1,10 @@
+{
+  "id": "taipei",
+  "destination": "Taipei",
+  "origin": "SIN",
+  "start_date": "2026-11-27",
+  "end_date": "2026-11-30",
+  "travellers": 2,
+  "budget_band": "low",
+  "styles": ["night markets", "hiking", "food"]
+}

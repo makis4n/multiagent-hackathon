@@ -1,0 +1,10 @@
+{
+  "id": "bali",
+  "destination": "Bali",
+  "origin": "SIN",
+  "start_date": "2026-12-03",
+  "end_date": "2026-12-08",
+  "travellers": 2,
+  "budget_band": "mid",
+  "styles": ["surf", "nature", "food"]
+}

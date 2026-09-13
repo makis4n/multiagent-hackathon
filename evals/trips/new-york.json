@@ -1,0 +1,10 @@
+{
+  "id": "new-york",
+  "destination": "New York",
+  "origin": "ARN",
+  "start_date": "2026-10-23",
+  "end_date": "2026-10-25",
+  "travellers": 2,
+  "budget_band": "high",
+  "styles": ["museums", "food", "theatre"]
+}
