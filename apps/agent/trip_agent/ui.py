@@ -16,6 +16,7 @@ from pathlib import Path
 import streamlit as st
 import streamlit.components.v1 as components
 from dotenv import load_dotenv
+from streamlit.delta_generator import DeltaGenerator
 
 from trip_agent.log import CallLog
 from trip_agent.loop import (
@@ -312,11 +313,12 @@ def main() -> None:
     if "tools" not in st.session_state:
         st.session_state["tools"] = build_tools()
     tools: Tools = st.session_state["tools"]
+    slot = st.empty()  # the loading bar, at the top of the main column while a stage runs
     with st.sidebar:
-        brief_form(tools)
+        brief_form(tools, slot)
         state = current_state()
         if state is not None and state.report is None:
-            questions_form(state, tools)
+            questions_form(state, tools, slot)
         if state is not None:
             signals_list(state)
     state = current_state()
@@ -333,6 +335,7 @@ def main() -> None:
 
 
 def loader(label: str, tips: list[str], seconds: int) -> None:
+    """Rendered inside the main-column slot; the sidebar form stays put underneath the user's hand."""
     body = (
         LOADER_HTML.replace("__LABEL__", esc(label))
         .replace("__TIPS__", json.dumps(tips))
@@ -466,7 +469,7 @@ def log_for(state: TripState) -> CallLog:
     return CallLog(Path("logs/calls.jsonl"), state.brief.id)
 
 
-def brief_form(tools: Tools) -> None:
+def brief_form(tools: Tools, slot: DeltaGenerator) -> None:
     st.subheader("Where to?")
     with st.form("brief"):
         destination_pick = st.selectbox(
@@ -515,7 +518,6 @@ def brief_form(tools: Tools) -> None:
             answers={BUDGET_QUESTION: f"about {int(budget)} EUR per person per day, flights aside"},
         )
         state = TripState(brief=brief)
-        slot = st.empty()
         with slot.container():
             loader("Reading the internet about " + brief.destination, RESEARCH_TIPS, seconds=60)
         state = stage_draft(stage_research(state, tools, log_for(state)), tools, log_for(state))
@@ -535,7 +537,7 @@ def tools_status() -> None:
     st.markdown(f'<div class="tool-row">{chips}</div>', unsafe_allow_html=True)
 
 
-def questions_form(state: TripState, tools: Tools) -> None:
+def questions_form(state: TripState, tools: Tools, slot: DeltaGenerator) -> None:
     st.subheader("A few questions")
     with st.form("questions"):
         answers = {
@@ -550,7 +552,6 @@ def questions_form(state: TripState, tools: Tools) -> None:
         }
         go = st.form_submit_button("Check and finish the plan", type="primary", width="stretch")
     if go:
-        slot = st.empty()
         with slot.container():
             loader("Checking every stop", VERIFY_TIPS, seconds=50)
         state = stage_verify(stage_refine(state, tools, log_for(state), answers), tools, log_for(state))
@@ -584,6 +585,7 @@ def signals_list(state: TripState) -> None:
 def itinerary_view(state: TripState) -> None:
     if state.itinerary is None:
         return
+    with_photos = any(place.photo_url for place in state.places.values())
     for day in state.itinerary.days:
         rows = []
         for stop in day.stops:
@@ -595,9 +597,10 @@ def itinerary_view(state: TripState) -> None:
                 if place is not None and place.photo_url
                 else "<span></span>"
             )
+            photo_cell = f'<td class="stop-photo">{photo}</td>' if with_photos else ""
             rows.append(
                 "<tr>"
-                f'<td class="stop-photo">{photo}</td>'
+                f"{photo_cell}"
                 f'<td class="stop-time">{stop.start:%H:%M}–{stop.end:%H:%M}</td>'
                 "<td>"
                 f'<span class="stop-place">{esc(stop.place_name)}</span>'
