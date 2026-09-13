@@ -127,5 +127,7 @@ def test_injected_failure_recovers_with_one_order(tmp_path: Path, monkeypatch) -
     assert [order.option.kind for order in state.orders] == [BookingKind.flight, BookingKind.stay]
     attempts = [(e["attempt"], e["ok"]) for e in log.entries() if e["tool"] == "booking.order.flight"]
     assert attempts == [(1, False), (2, True)]
-    inner = tools.booking.inner
-    assert len(inner.orders) == 2
+    from trip_core.fakes import FakeBooking
+
+    assert isinstance(tools.booking.inner, FakeBooking)
+    assert len(tools.booking.inner.orders) == 2
