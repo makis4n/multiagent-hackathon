@@ -12,7 +12,9 @@ Status mapping, from the Calendar API error guide and the Google HTTP/JSON error
 
 from __future__ import annotations
 
+import base64
 import datetime as dt
+import hashlib
 import logging
 import os
 from collections.abc import Mapping
@@ -39,6 +41,10 @@ class CalendarNotFound(ToolError):
     """The resource is not there. A delete can treat this as already gone; anything else is a real failure."""
 
 
+class CalendarConflict(ToolError):
+    """An event id already exists. Export can update it in place."""
+
+
 class CalendarExporter:
     """Creates the trip calendar now; later steps add events to this same calendar."""
 
@@ -58,7 +64,7 @@ class CalendarExporter:
                 json_body={"summary": _calendar_name(brief), "timeZone": self._timezone},
             )
             calendar_id = _calendar_id(created, "create calendar")
-        self._insert_events(calendar_id, itinerary)
+        self._write_events(calendar_id, itinerary)
         return f"{CALENDAR_WEB_URL}{quote(calendar_id, safe='@')}"
 
     def _find_calendar_id(self, name: str) -> str | None:
@@ -79,11 +85,16 @@ class CalendarExporter:
                 raise ToolError("the Google Calendar API returned an invalid calendar list page token")
             page_token = next_token
 
-    def _insert_events(self, calendar_id: str, itinerary: Itinerary) -> None:
+    def _write_events(self, calendar_id: str, itinerary: Itinerary) -> None:
         path = f"/calendars/{quote(calendar_id, safe='')}/events"
         for day in itinerary.days:
             for stop in day.stops:
-                self._client.request("POST", path, json_body=_event_body(day.date, stop, itinerary.id, self._timezone))
+                event_id = _event_id(itinerary.id, stop.id)
+                event = _event_body(day.date, stop, itinerary.id, self._timezone, event_id)
+                try:
+                    self._client.request("POST", path, json_body=event)
+                except CalendarConflict:
+                    self._client.request("PUT", f"{path}/{event_id}", json_body=event)
 
 
 class CalendarClient:
@@ -162,6 +173,8 @@ def _failure(response: httpx.Response, method: str, path: str) -> ToolError:
     status = _error_status(response)
     if code == 404:
         return CalendarNotFound(f"the Google Calendar API returned 404 ({status}) for {method} {path}")
+    if code == 409:
+        return CalendarConflict(f"the Google Calendar API returned 409 ({status}) for {method} {path}")
     return ToolError(f"the Google Calendar API returned {code} ({status}) for {method} {path}")
 
 
@@ -200,13 +213,21 @@ def _calendar_id(calendar: Mapping[str, Any], source: str) -> str:
     return calendar_id
 
 
-def _event_body(date: dt.date, stop: Stop, itinerary_id: str, timezone: str) -> dict[str, object]:
+def _event_body(date: dt.date, stop: Stop, itinerary_id: str, timezone: str, event_id: str) -> dict[str, object]:
     return {
+        "id": event_id,
         "summary": stop.place_name,
         "description": f"{stop.why}\n\nItinerary: {itinerary_id}",
         "start": {"dateTime": _local_date_time(date, stop.start), "timeZone": timezone},
         "end": {"dateTime": _local_date_time(date, stop.end), "timeZone": timezone},
     }
+
+
+def _event_id(itinerary_id: str, stop_id: str) -> str:
+    """Return a deterministic Calendar event id using Google's base32hex alphabet."""
+    source = f"{itinerary_id}\0{stop_id}".encode()
+    digest = base64.b32hexencode(hashlib.sha256(source).digest()).decode("ascii").lower().rstrip("=")
+    return f"e{digest}"
 
 
 def _local_date_time(date: dt.date, time: dt.time) -> str:

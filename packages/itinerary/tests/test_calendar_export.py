@@ -2,6 +2,7 @@
 
 import datetime as dt
 import json
+import re
 from pathlib import Path
 
 import httpx
@@ -139,7 +140,10 @@ def test_one_event_per_stop_uses_day_dates_and_calendar_timezone() -> None:
             CalendarExporter(client, timezone="Europe/Stockholm").export(itinerary_with_stops(), brief())
 
     payloads = [json.loads(call.request.content) for call in inserted.calls]
+    event_ids = [payload.pop("id") for payload in payloads]
     assert inserted.call_count == 3
+    assert len(set(event_ids)) == 3
+    assert all(re.fullmatch(r"[a-v0-9]{5,1024}", event_id) for event_id in event_ids)
     assert payloads == [
         {
             "summary": "Tsukiji Outer Market",
@@ -199,3 +203,57 @@ def test_aware_stop_times_are_sent_as_offset_free_local_times() -> None:
         date_time = payload[key]["dateTime"]
         assert date_time == expected
         assert "+" not in date_time and not date_time.endswith("Z")
+
+
+def test_second_export_updates_instead_of_duplicating() -> None:
+    trip = itinerary_with_stops()
+    with respx.mock(base_url=CALENDAR_API_BASE) as mock:
+        mock.get("/users/me/calendarList").mock(
+            return_value=httpx.Response(200, json=recorded("existing_event_calendar_list"))
+        )
+        inserted = mock.post("/calendars/trip-calendar/events").mock(
+            side_effect=[
+                httpx.Response(200, json=recorded("inserted_event")),
+                httpx.Response(200, json=recorded("inserted_event")),
+                httpx.Response(200, json=recorded("inserted_event")),
+                httpx.Response(409, json={"error": {"status": "ALREADY_EXISTS"}}),
+                httpx.Response(409, json={"error": {"status": "ALREADY_EXISTS"}}),
+                httpx.Response(409, json={"error": {"status": "ALREADY_EXISTS"}}),
+            ]
+        )
+        updated = mock.put(url__regex=r"/calendars/trip-calendar/events/[a-v0-9]+$").mock(
+            return_value=httpx.Response(200, json=recorded("inserted_event"))
+        )
+        with CalendarClient(StaticTokenProvider("fake-token")) as client:
+            exporter = CalendarExporter(client, timezone="Europe/Stockholm")
+            exporter.export(trip, brief())
+            exporter.export(trip, brief())
+
+    assert inserted.call_count == 6
+    assert updated.call_count == 3
+    assert len({call.request.url.path.rsplit("/", 1)[-1] for call in updated.calls}) == 3
+
+
+def test_insert_conflict_falls_back_to_update() -> None:
+    trip = itinerary_with_stops()
+    with respx.mock(base_url=CALENDAR_API_BASE) as mock:
+        mock.get("/users/me/calendarList").mock(
+            return_value=httpx.Response(200, json=recorded("existing_event_calendar_list"))
+        )
+        inserted = mock.post("/calendars/trip-calendar/events").mock(
+            side_effect=[
+                httpx.Response(409, json={"error": {"status": "ALREADY_EXISTS"}}),
+                httpx.Response(200, json=recorded("inserted_event")),
+                httpx.Response(200, json=recorded("inserted_event")),
+            ]
+        )
+        updated = mock.put(url__regex=r"/calendars/trip-calendar/events/[a-v0-9]+$").mock(
+            return_value=httpx.Response(200, json=recorded("inserted_event"))
+        )
+        with CalendarClient(StaticTokenProvider("fake-token")) as client:
+            CalendarExporter(client, timezone="Europe/Stockholm").export(trip, brief())
+
+    assert inserted.call_count == 3
+    assert updated.call_count == 1
+    updated_id = updated.calls.last.request.url.path.rsplit("/", 1)[-1]
+    assert json.loads(updated.calls.last.request.content)["id"] == updated_id
