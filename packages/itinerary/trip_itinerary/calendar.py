@@ -13,24 +13,69 @@ Status mapping, from the Calendar API error guide and the Google HTTP/JSON error
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Mapping
 from types import TracebackType
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 
-from trip_core.models import RetryableError, ToolError
+from trip_core.models import Itinerary, RetryableError, ToolError, TripBrief
 from trip_itinerary.credentials import TokenProvider
 
 log = logging.getLogger(__name__)
 
 CALENDAR_API_BASE = "https://www.googleapis.com/calendar/v3"
 REQUEST_TIMEOUT_SECONDS = 20.0
+CALENDAR_TIMEZONE_ENV = "TRIP_CALENDAR_TIMEZONE"
+DEFAULT_CALENDAR_TIMEZONE = "UTC"
+CALENDAR_WEB_URL = "https://calendar.google.com/calendar/u/0/r?cid="
 _UNKNOWN_STATUS = "unknown"
 
 
 class CalendarNotFound(ToolError):
     """The resource is not there. A delete can treat this as already gone; anything else is a real failure."""
+
+
+class CalendarExporter:
+    """Creates the trip calendar now; later steps add events to this same calendar."""
+
+    def __init__(self, client: CalendarClient, *, timezone: str | None = None) -> None:
+        self._client = client
+        self._timezone = (
+            timezone if timezone is not None else os.environ.get(CALENDAR_TIMEZONE_ENV, DEFAULT_CALENDAR_TIMEZONE)
+        )
+
+    def export(self, itinerary: Itinerary, brief: TripBrief) -> str:
+        """Create or find the named secondary calendar and return its Google Calendar web URL."""
+        calendar_id = self._find_calendar_id(_calendar_name(brief))
+        if calendar_id is None:
+            created = self._client.request(
+                "POST",
+                "/calendars",
+                json_body={"summary": _calendar_name(brief), "timeZone": self._timezone},
+            )
+            calendar_id = _calendar_id(created, "create calendar")
+        return f"{CALENDAR_WEB_URL}{quote(calendar_id, safe='@')}"
+
+    def _find_calendar_id(self, name: str) -> str | None:
+        page_token: str | None = None
+        while True:
+            params = {"pageToken": page_token} if page_token is not None else None
+            page = self._client.request("GET", "/users/me/calendarList", params=params)
+            items: object = page.get("items", [])
+            if not isinstance(items, list):
+                raise ToolError("the Google Calendar API returned calendar list items that are not a list")
+            for item in items:
+                if isinstance(item, dict) and item.get("summary") == name:
+                    return _calendar_id(item, "calendar list")
+            next_token: object = page.get("nextPageToken")
+            if next_token is None:
+                return None
+            if not isinstance(next_token, str) or not next_token:
+                raise ToolError("the Google Calendar API returned an invalid calendar list page token")
+            page_token = next_token
 
 
 class CalendarClient:
@@ -134,3 +179,14 @@ def _error_status(response: httpx.Response) -> str:
             if isinstance(reason, str) and reason:
                 return reason
     return _UNKNOWN_STATUS
+
+
+def _calendar_name(brief: TripBrief) -> str:
+    return f"{brief.destination} {brief.start_date.isoformat()}"
+
+
+def _calendar_id(calendar: Mapping[str, Any], source: str) -> str:
+    calendar_id: object = calendar.get("id")
+    if not isinstance(calendar_id, str) or not calendar_id:
+        raise ToolError(f"the Google Calendar API returned a {source} without an id")
+    return calendar_id
