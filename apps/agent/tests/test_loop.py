@@ -32,6 +32,9 @@ def test_fixture_runs_end_to_end(tmp_path: Path) -> None:
     assert all(stop.status == StopStatus.verified for stop in stops)
     assert not any("(closed)" in stop.place_name for stop in stops)
     assert "Shibuya Sky" not in [stop.place_name for stop in stops]
+    assert len(state.replacements) == 1
+    swap = state.replacements[0]
+    assert "(closed)" in swap.old.place_name and swap.new is not None and swap.reason.startswith("open:")
     assert [order.option.kind for order in state.orders] == [BookingKind.flight, BookingKind.stay]
     assert all(order.confirmed_by_user_at == NOW for order in state.orders)
     assert state.calendar_url
@@ -91,3 +94,20 @@ def test_ask_fills_answers_and_patches(tmp_path: Path) -> None:
     assert state.itinerary is not None
     assert "Lisbon Central Market" not in [stop.place_name for stop in state.itinerary.stops()]
     assert state.report is not None and state.report.passed
+
+
+def test_stages_match_run(tmp_path: Path) -> None:
+    from trip_agent.loop import stage_calendar, stage_draft, stage_refine, stage_research, stage_verify
+    from trip_core.models import TripState
+
+    brief = load_fixture("tokyo").brief
+    staged = TripState(brief=brief)
+    log = CallLog(tmp_path / "staged.jsonl", brief.id)
+    tools = tools_from(default_fakes())
+    staged = stage_draft(stage_research(staged, tools, log), tools, log)
+    assert staged.report is None and staged.itinerary is not None and len(staged.questions) == 3
+    staged = stage_calendar(stage_verify(stage_refine(staged, tools, log, {}), tools, log), tools, log)
+    whole = run(brief, tools_from(default_fakes()), CallLog(tmp_path / "run.jsonl", brief.id), confirm=lambda o: None)
+    assert staged.itinerary is not None and whole.itinerary is not None
+    assert [s.place_name for s in staged.itinerary.stops()] == [s.place_name for s in whole.itinerary.stops()]
+    assert staged.calendar_url == whole.calendar_url

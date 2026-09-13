@@ -263,6 +263,14 @@ def idempotency_key(brief_id: str, option: BookingOption) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()[:24]
 
 
+class Replacement(BaseModel):
+    """A stop the verifier rejected and what took its place. `new` is None when it was removed."""
+
+    old: Stop
+    new: Stop | None
+    reason: str
+
+
 class TripState(BaseModel):
     """Everything the loop produced for one brief. The UI renders this; the evals score it."""
 
@@ -272,6 +280,7 @@ class TripState(BaseModel):
     questions: list[str] = Field(default_factory=list)
     places: dict[str, Place] = Field(default_factory=dict)
     report: VerificationReport | None = None
+    replacements: list[Replacement] = Field(default_factory=list)
     options: list[BookingOption] = Field(default_factory=list)
     orders: list[BookingOrder] = Field(default_factory=list)
     calendar_url: str | None = None
