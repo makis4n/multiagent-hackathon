@@ -1,10 +1,12 @@
-"""Exa web search to Signals, scoped to reddit.com.
+"""Exa web search to Signals.
 
-This is how the trip gets Reddit content without calling Reddit. Reddit's Responsible Builder Policy requires
-explicit approval to use their Data API and restricts sharing post data with third-party AI; Exa carries its own
-licence to index and serve that content, so we read it from Exa and never touch reddit.com ourselves.
-
-A result is labelled by the host it came from, so a reddit.com thread still reaches the user as a reddit signal.
+Was scoped to reddit.com via `includeDomains` to read Reddit content without calling Reddit's own API (their
+Responsible Builder Policy needs approval we do not have and restricts sharing post data with third-party AI).
+Verified live on 2026-09-13: `includeDomains: ["reddit.com"]` returns zero results every time, while the same
+call against a control domain (wikipedia.org, nytimes.com) returns results normally. Not documented anywhere,
+found by direct testing. So this source is general open-web travel content, not a Reddit channel; a result is
+still labelled by the host it came from in case Reddit content ever surfaces unrestricted, but that has not been
+observed. Getting real Reddit content back requires either Reddit's own approval or a different provider.
 
 search() never raises. The loop runs research with retries=0 and no try (apps/agent/trip_agent/loop.py).
 """
@@ -25,7 +27,6 @@ from trip_research.places import extract_places
 from trip_research.rank import best_per_url, excerpt, score, to_naive_utc, utc_now
 
 SEARCH_URL = "https://api.exa.ai/search"
-INCLUDE_DOMAINS = ["reddit.com"]
 EXCERPT_CHARS = 400
 TEXT_CHARS = 1200
 PER_QUERY = 25
@@ -113,7 +114,6 @@ class ExaSource:
             json={
                 "query": term,
                 "numResults": PER_QUERY,
-                "includeDomains": INCLUDE_DOMAINS,
                 "startPublishedDate": (now - dt.timedelta(days=LOOKBACK_DAYS)).isoformat(timespec="seconds") + "Z",
                 "contents": {"text": {"maxCharacters": TEXT_CHARS}},
             },

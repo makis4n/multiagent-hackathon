@@ -49,7 +49,8 @@ def test_search_returns_signals_from_the_cassette(api_key: None) -> None:
 
 @respx.mock
 def test_a_reddit_result_is_labelled_reddit(api_key: None) -> None:
-    """The demo moment depends on this: a stop credited to a subreddit thread, sourced through Exa."""
+    """Verified live: Exa's includeDomains never actually returns reddit.com, so this path is not exercised
+    by any real response today. Kept in case Exa's coverage changes; the cassette exercises it either way."""
     mock_search()
 
     signals = ExaSource(now=NOW).search(tokyo())
@@ -95,14 +96,16 @@ def test_published_dates_are_naive_utc(api_key: None) -> None:
 
 
 @respx.mock
-def test_the_request_is_scoped_to_reddit(api_key: None) -> None:
-    """We read Reddit content through Exa's licence rather than calling Reddit's own API."""
+def test_the_request_has_no_domain_restriction(api_key: None) -> None:
+    """Verified live on 2026-09-13: includeDomains=["reddit.com"] returns zero results every time, while the
+    same call against a control domain (wikipedia.org, nytimes.com) works normally. Not documented, found by
+    direct testing. So this is open web search, not a Reddit channel."""
     route = mock_search()
 
     ExaSource(now=NOW).search(tokyo())
 
     body = json.loads(route.calls.last.request.content)
-    assert body["includeDomains"] == ["reddit.com"]
+    assert "includeDomains" not in body
 
 
 @respx.mock
