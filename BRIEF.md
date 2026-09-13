@@ -38,9 +38,11 @@ Each row names a test that plants the failure. A row without a test is a claim, 
 
 | tool | failure | detected by | mitigation | test |
 | --- | --- | --- | --- | --- |
-| booking.order | provider 5xx after creating the order | `RetryableError` | one retry under the same idempotency key; the provider looks the key up first, so one order | `test_retry_keeps_exactly_one_order`, `test_injected_failure_recovers_with_one_order` |
+| booking.order | provider 5xx after creating the order | `RetryableError` | one retry under the same idempotency key; the provider looks the key up first, so one order | `test_retry_keeps_exactly_one_order`, `test_injected_failure_recovers_with_one_order`, `test_order_is_idempotent` (Duffel) |
 | booking.order | called without user confirmation | `ToolError` | refused; the loop never calls it without `confirmed_by_user_at` | `test_order_refuses_unconfirmed`, `test_no_confirmation_means_no_order` |
-| booking.order | live key in the environment | key prefix check | refused at client construction | Lane D, D2 |
+| booking.order | live key in the environment | key prefix check | refused before a client exists | `test_a_live_key_is_rejected` |
+| booking.order | Duffel created the order, the response never arrived | timeout, `RetryableError` | the retry lists Duffel orders and adopts the one carrying its idempotency key; one create request, one order | `test_lost_create_response_recovers_from_the_provider` |
+| booking.order | offer expired between search and order | Duffel 422 `offer_no_longer_available` | `ToolError` "offer expired, search again"; nothing stored | `test_an_expired_offer_says_search_again` |
 | planner.draft | invented or unresolvable venue | `exists` check | stop marked failed, replaced from the signals or removed, recorded in `replacements` | `test_verifier_flags_the_closed_venue` |
 | planner.draft | venue closed at the planned time | `open` check against Google hours | replacement pass, then prune | `test_fixture_runs_end_to_end`, `test_parse_place_maps_google_weekdays_onto_the_contract` |
 | planner.draft | stops too far apart | `reachable` check, 45 min cap | two replacement passes, then prune until no leg fails | `test_stops_that_keep_failing_are_pruned_and_recorded`, `test_prune_repeats_when_a_removal_creates_a_new_failing_leg` |
