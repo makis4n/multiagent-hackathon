@@ -79,7 +79,6 @@ additively only, one Protocol member shipping with every implementer and fake in
 
 - `ARCHITECTURE.md` — the loop stage by stage, the money and safety rules, the model wrapper
 - `BRIEF.md` — the reliability brief: every failure mode with the test that proves it, the eval table
-- `DEMO.md` — the two-minute walkthrough script
 - `CLAUDE.md` — the rules bounding everyone and every coding agent working in this repo
 - `PLAN.md` — the original run sheet this was built against
 
